@@ -1,18 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2, Calendar as CalendarIcon, User as UserIcon } from 'lucide-react';
-import { mockDoctors } from '../../../mock';
-import Badge from '../../../components/common/Badge';
+import { useDoctorStore } from '../../../store/doctorStore';
 import Button from '../../../components/common/Button';
 import Card from '../../../components/common/Card';
 
 const AdminDoctors: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  // Basic mock filter
-  const filteredDoctors = mockDoctors.filter(d => 
-    d.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    d.specialization.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const { doctors, fetchDoctors, isLoading, search, setSearchQuery, specialization, setSpecializationFilter, page, totalPages, setPage } = useDoctorStore();
+
+  useEffect(() => {
+    fetchDoctors();
+  }, [fetchDoctors]);
 
   return (
     <div className="space-y-6">
@@ -37,105 +34,112 @@ const AdminDoctors: React.FC = () => {
             <input
               type="text"
               placeholder="Search by name or specialization..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={search}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-primary focus:border-primary bg-white"
             />
           </div>
           <div className="flex gap-2">
-            <select className="border border-gray-200 rounded-lg text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-primary">
-              <option value="">All Specializations</option>
-              <option value="cardiology">Cardiology</option>
-              <option value="pediatrics">Pediatrics</option>
-            </select>
-            <select className="border border-gray-200 rounded-lg text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-primary">
-              <option value="">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+            <select 
+              className="border border-gray-200 rounded-lg text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+              value={specialization}
+              onChange={(e) => setSpecializationFilter(e.target.value)}
+            >
+              <option value="all">All Specializations</option>
+              <option value="Cardiology">Cardiology</option>
+              <option value="Pediatrics">Pediatrics</option>
+              <option value="Dermatology">Dermatology</option>
+              <option value="Neurology">Neurology</option>
             </select>
           </div>
         </div>
 
         {/* Data Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
-                <th className="py-3 px-6 font-medium">Doctor</th>
-                <th className="py-3 px-6 font-medium">Specialization</th>
-                <th className="py-3 px-6 font-medium">Contact</th>
-                <th className="py-3 px-6 font-medium">Status</th>
-                <th className="py-3 px-6 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredDoctors.map(doctor => (
-                <tr key={doctor.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      {doctor.image ? (
-                        <img src={doctor.image} alt={doctor.name} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
-                      ) : (
+          {isLoading ? (
+             <div className="p-8 text-center text-gray-500">Loading doctors...</div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
+                  <th className="py-3 px-6 font-medium">Doctor</th>
+                  <th className="py-3 px-6 font-medium">Specialization</th>
+                  <th className="py-3 px-6 font-medium">Contact</th>
+                  <th className="py-3 px-6 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {doctors.map(doctor => (
+                  <tr key={doctor.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
                           <UserIcon className="w-5 h-5 text-gray-400" />
                         </div>
-                      )}
-                      <div>
-                        <p className="font-semibold text-gray-900">{doctor.name}</p>
-                        <p className="text-xs text-gray-500">ID: {doctor.id}</p>
+                        <div>
+                          <p className="font-semibold text-gray-900">{doctor.user_id}</p>
+                          <p className="text-xs text-gray-500">ID: {doctor.id}</p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary">
-                      {doctor.specialization}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <p className="text-sm text-gray-900">{doctor.email || 'N/A'}</p>
-                    <p className="text-xs text-gray-500">{doctor.phone || 'N/A'}</p>
-                  </td>
-                  <td className="py-4 px-6">
-                    <Badge variant={doctor.isAvailable ? 'success' : 'default'} size="sm">
-                      {doctor.isAvailable ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </td>
-                  <td className="py-4 px-6 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary-50 transition-colors" title="View Schedule">
-                        <CalendarIcon className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Edit Doctor">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Delete Doctor">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredDoctors.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-gray-500">
-                    <UserIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-lg font-medium text-gray-900">No doctors found</p>
-                    <p className="text-sm">Try adjusting your search criteria.</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary">
+                        {doctor.specialization}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <p className="text-xs text-gray-500">Experience: {doctor.experience_years} years</p>
+                      <p className="text-xs text-gray-500">Fee: ${doctor.consultation_fee}</p>
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary-50 transition-colors" title="View Schedule">
+                          <CalendarIcon className="w-4 h-4" />
+                        </button>
+                        <button className="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Edit Doctor">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Delete Doctor">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {doctors.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="py-12 text-center text-gray-500">
+                      <UserIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-lg font-medium text-gray-900">No doctors found</p>
+                      <p className="text-sm">Try adjusting your search criteria.</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
         
-        {/* Pagination placeholder */}
+        {/* Pagination */}
         <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500 bg-gray-50/50">
           <div>
-            Showing <span className="font-medium text-gray-900">1</span> to <span className="font-medium text-gray-900">{Math.min(filteredDoctors.length, 10)}</span> of <span className="font-medium text-gray-900">{filteredDoctors.length}</span> results
+            Page <span className="font-medium text-gray-900">{page}</span> of <span className="font-medium text-gray-900">{totalPages}</span>
           </div>
           <div className="flex gap-1">
-            <button className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-50" disabled>Previous</button>
-            <button className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-100">Next</button>
+            <button 
+              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-50" 
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
+            >
+              Previous
+            </button>
+            <button 
+              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-50"
+              disabled={page >= totalPages}
+              onClick={() => setPage(page + 1)}
+            >
+              Next
+            </button>
           </div>
         </div>
       </Card>

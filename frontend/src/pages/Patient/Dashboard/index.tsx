@@ -1,22 +1,35 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Activity, ArrowRight, FileText } from 'lucide-react';
-import { mockAppointments, mockDoctors } from '../../../mock';
+import { Calendar, Activity, ArrowRight, FileText } from 'lucide-react';
+import { useAuthStore } from '../../../store/authStore';
+import { useDashboardStore } from '../../../store/dashboardStore';
+import { useAppointmentStore } from '../../../store/appointmentStore';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
 import Card from '../../../components/common/Card';
 
 const PatientDashboard: React.FC = () => {
-  const patientId = 'p1'; // Mock patient ID
-  const myAppointments = mockAppointments.filter(app => app.patientId === patientId);
-  const upcoming = myAppointments.filter(app => app.status === 'upcoming').slice(0, 3);
+  const { user } = useAuthStore();
+  const { stats, fetchPatientStats, isLoading: statsLoading } = useDashboardStore();
+  const { appointments, fetchPatientAppointments, isLoading: appsLoading } = useAppointmentStore();
+
+  useEffect(() => {
+    fetchPatientStats();
+    fetchPatientAppointments();
+  }, [fetchPatientStats, fetchPatientAppointments]);
+
+  const upcoming = appointments.filter(app => app.status === 'PENDING' || app.status === 'CONFIRMED').slice(0, 3);
   
+  if (statsLoading || appsLoading) {
+    return <div className="p-8 text-center text-gray-500">Loading dashboard...</div>;
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Welcome back, John!</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name || 'Patient'}!</h2>
           <p className="text-gray-500 mt-1">Here is a summary of your appointments and health activity.</p>
         </div>
         <Link to="/patient/book">
@@ -34,7 +47,7 @@ const PatientDashboard: React.FC = () => {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Upcoming Appointments</p>
-            <p className="text-2xl font-bold text-gray-900">{upcoming.length}</p>
+            <p className="text-2xl font-bold text-gray-900">{stats?.upcomingAppointments || 0}</p>
           </div>
         </Card>
 
@@ -43,18 +56,18 @@ const PatientDashboard: React.FC = () => {
             <FileText className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">Total Appointments</p>
-            <p className="text-2xl font-bold text-gray-900">{myAppointments.length}</p>
+            <p className="text-sm font-medium text-gray-500">Completed Appointments</p>
+            <p className="text-2xl font-bold text-gray-900">{stats?.completedAppointments || 0}</p>
           </div>
         </Card>
 
         <Card className="p-6 flex items-center">
-          <div className="p-4 bg-amber-50 rounded-lg text-amber-600 mr-4">
+          <div className="p-4 bg-red-50 rounded-lg text-red-600 mr-4">
             <Activity className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">Health Profile</p>
-            <p className="text-2xl font-bold text-gray-900">95% Complete</p>
+            <p className="text-sm font-medium text-gray-500">Cancelled</p>
+            <p className="text-2xl font-bold text-gray-900">{stats?.cancelledAppointments || 0}</p>
           </div>
         </Card>
       </div>
@@ -81,27 +94,24 @@ const PatientDashboard: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {upcoming.map(app => {
-                  const doctor = mockDoctors.find(d => d.id === app.doctorId);
                   return (
                     <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <img src={doctor?.image} alt={doctor?.name} className="w-10 h-10 rounded-full object-cover" />
                           <div>
-                            <p className="font-semibold text-gray-900">{doctor?.name}</p>
-                            <p className="text-xs text-gray-500">{doctor?.specialization}</p>
+                            <p className="font-semibold text-gray-900">Dr. {app.doctor_name || app.doctor_id}</p>
                           </div>
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <p className="font-medium text-gray-900">{app.date}</p>
-                        <p className="text-xs text-gray-500">{app.time}</p>
+                        <p className="font-medium text-gray-900">{new Date(app.date).toLocaleDateString()}</p>
+                        <p className="text-xs text-gray-500">{app.start_time} - {app.end_time}</p>
                       </td>
                       <td className="py-4 px-6 text-sm text-gray-600 capitalize">
                         Consultation
                       </td>
                       <td className="py-4 px-6 text-right">
-                        <Badge variant="info" className="bg-sky-100 text-sky-700">Upcoming</Badge>
+                        <Badge variant="info" className="bg-sky-100 text-sky-700">{app.status}</Badge>
                       </td>
                     </tr>
                   );
@@ -141,32 +151,6 @@ const PatientDashboard: React.FC = () => {
                   <p className="text-xs text-gray-500">Manage medical records</p>
                 </div>
               </Link>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Appointment Completed</p>
-                  <p className="text-xs text-gray-500 mt-1">Dr. Sarah Jenkins - General Practice</p>
-                  <p className="text-xs text-gray-400 mt-0.5">2 days ago</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 flex-shrink-0">
-                  <Calendar className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Appointment Scheduled</p>
-                  <p className="text-xs text-gray-500 mt-1">Dr. Michael Chen - Cardiology</p>
-                  <p className="text-xs text-gray-400 mt-0.5">1 week ago</p>
-                </div>
-              </div>
             </div>
           </Card>
         </div>

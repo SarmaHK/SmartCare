@@ -19,6 +19,8 @@ import {
   ADMIN_SIDEBAR_LINKS 
 } from '../constants';
 
+import { ProtectedRoute } from '../components/layout/ProtectedRoute';
+import { RoleGuard } from '../components/layout/RoleGuard';
 import PatientDashboard from '../pages/Patient/Dashboard';
 
 const router = createBrowserRouter([
@@ -36,36 +38,66 @@ const router = createBrowserRouter([
   },
   {
     path: '/patient',
-    element: <DashboardLayout links={PATIENT_SIDEBAR_LINKS} title="Patient Dashboard" role="patient" />,
+    element: (
+      <ProtectedRoute>
+        <RoleGuard allowedRoles={['PATIENT']} />
+      </ProtectedRoute>
+    ),
     children: [
-      { index: true, element: <PatientDashboard /> },
-      { path: 'appointments', element: <MyAppointments /> },
-      { path: 'book', element: <BookAppointment /> },
-      { path: 'profile', element: <div className="p-4">Profile Settings</div> },
-    ],
+      {
+        path: '',
+        element: <DashboardLayout links={PATIENT_SIDEBAR_LINKS} title="Patient Dashboard" role="patient" />,
+        children: [
+          { index: true, element: <PatientDashboard /> },
+          { path: 'appointments', element: <MyAppointments /> },
+          { path: 'book', element: <BookAppointment /> },
+          { path: 'profile', element: <div className="p-4">Profile Settings</div> },
+        ],
+      }
+    ]
   },
   {
     path: '/doctor',
-    element: <DashboardLayout links={DOCTOR_SIDEBAR_LINKS} title="Doctor Dashboard" role="doctor" />,
+    element: (
+      <ProtectedRoute>
+        <RoleGuard allowedRoles={['DOCTOR']} />
+      </ProtectedRoute>
+    ),
     children: [
-      { index: true, element: <DoctorDashboard /> },
-      { path: 'appointments', element: <div className="p-4">Doctor Appointments</div> },
-      { path: 'schedule', element: <div className="p-4">Doctor Schedule</div> },
-      { path: 'patients', element: <div className="p-4">Patient List</div> },
-      { path: 'profile', element: <div className="p-4">Profile Settings</div> },
-    ],
+      {
+        path: '',
+        element: <DashboardLayout links={DOCTOR_SIDEBAR_LINKS} title="Doctor Dashboard" role="doctor" />,
+        children: [
+          { index: true, element: <DoctorDashboard /> },
+          { path: 'appointments', element: <div className="p-4">Doctor Appointments</div> },
+          { path: 'schedule', element: <div className="p-4">Doctor Schedule</div> },
+          { path: 'patients', element: <div className="p-4">Patient List</div> },
+          { path: 'profile', element: <div className="p-4">Profile Settings</div> },
+        ]
+      }
+    ]
   },
   {
     path: '/admin',
-    element: <DashboardLayout links={ADMIN_SIDEBAR_LINKS} title="Admin Dashboard" role="admin" />,
+    element: (
+      <ProtectedRoute>
+        <RoleGuard allowedRoles={['ADMIN']} />
+      </ProtectedRoute>
+    ),
     children: [
-      { index: true, element: <AdminDashboard /> },
-      { path: 'doctors', element: <AdminDoctors /> },
-      { path: 'appointments', element: <div className="p-4">All Appointments</div> },
-      { path: 'schedules', element: <div className="p-4">Manage Schedules</div> },
-      { path: 'patients', element: <div className="p-4">Manage Patients</div> },
-      { path: 'settings', element: <div className="p-4">System Settings</div> },
-    ],
+      {
+        path: '',
+        element: <DashboardLayout links={ADMIN_SIDEBAR_LINKS} title="Admin Dashboard" role="admin" />,
+        children: [
+          { index: true, element: <AdminDashboard /> },
+          { path: 'doctors', element: <AdminDoctors /> },
+          { path: 'appointments', element: <div className="p-4">All Appointments</div> },
+          { path: 'schedules', element: <div className="p-4">Manage Schedules</div> },
+          { path: 'patients', element: <div className="p-4">Manage Patients</div> },
+          { path: 'settings', element: <div className="p-4">System Settings</div> },
+        ]
+      }
+    ]
   },
   {
     path: '*',

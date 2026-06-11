@@ -10,10 +10,9 @@ import Button from '../../components/common/Button';
 import DatePicker from '../../components/forms/DatePicker';
 import { staggerContainer } from '../../hooks/useAnimations';
 import { cn } from '../../utils/formatters';
-import type { AppointmentStatus } from '../../types';
 import toast from 'react-hot-toast';
 
-const TABS: { label: string; value: AppointmentStatus | 'all' }[] = [
+const TABS = [
   { label: 'All', value: 'all' },
   { label: 'Upcoming', value: 'upcoming' },
   { label: 'Completed', value: 'completed' },
@@ -22,34 +21,53 @@ const TABS: { label: string; value: AppointmentStatus | 'all' }[] = [
 
 const MyAppointments: React.FC = () => {
   const {
-    filteredAppointments, activeTab, isLoading,
-    fetchAppointments, setActiveTab, cancelAppointment, rescheduleAppointment,
+    appointments, isLoading,
+    fetchPatientAppointments, cancelAppointment, rescheduleAppointment,
   } = useAppointmentStore();
 
+  const [activeTab, setActiveTab] = useState('all');
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const [newDate, setNewDate] = useState('');
 
   useEffect(() => {
-    fetchAppointments();
-  }, [fetchAppointments]);
+    fetchPatientAppointments();
+  }, [fetchPatientAppointments]);
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (cancelId) {
-      cancelAppointment(cancelId);
-      toast.success('Appointment cancelled successfully');
-      setCancelId(null);
+      try {
+        await cancelAppointment(cancelId);
+        toast.success('Appointment cancelled successfully');
+      } catch (error) {
+        // Error already handled in store via toast (in real app) or logged
+      } finally {
+        setCancelId(null);
+      }
     }
   };
 
-  const handleReschedule = () => {
+  const handleReschedule = async () => {
     if (rescheduleId && newDate) {
-      rescheduleAppointment(rescheduleId, newDate, '10:00 AM');
-      toast.success('Appointment rescheduled successfully');
-      setRescheduleId(null);
-      setNewDate('');
+      try {
+        await rescheduleAppointment(rescheduleId, { date: newDate, start_time: '10:00:00' });
+        toast.success('Appointment rescheduled successfully');
+        setRescheduleId(null);
+        setNewDate('');
+      } catch (error) {
+        // Handled in store
+      }
     }
   };
+
+  // Filter appointments
+  const filteredAppointments = appointments.filter(app => {
+    if (activeTab === 'all') return true;
+    if (activeTab === 'upcoming') return app.status === 'PENDING' || app.status === 'CONFIRMED';
+    if (activeTab === 'completed') return app.status === 'COMPLETED';
+    if (activeTab === 'cancelled') return app.status === 'CANCELLED';
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -62,7 +80,7 @@ const MyAppointments: React.FC = () => {
       </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-background rounded-xl p-1 mb-8 border border-border">
+        <div className="flex gap-1 bg-white rounded-xl p-1 mb-8 border border-gray-200">
           {TABS.map((tab) => (
             <button
               key={tab.value}
@@ -70,8 +88,8 @@ const MyAppointments: React.FC = () => {
               className={cn(
                 'flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200',
                 activeTab === tab.value
-                  ? 'bg-white text-primary shadow-sm'
-                  : 'text-text-muted hover:text-text-primary'
+                  ? 'bg-gray-100 text-primary shadow-sm'
+                  : 'text-gray-500 hover:text-gray-900'
               )}
             >
               {tab.label}
@@ -96,7 +114,7 @@ const MyAppointments: React.FC = () => {
                 : `No ${activeTab} appointments.`
             }
             actionLabel="Book Appointment"
-            onAction={() => window.location.href = '/book'}
+            onAction={() => window.location.href = '/patient/book'}
           />
         ) : (
           <motion.div
@@ -123,7 +141,7 @@ const MyAppointments: React.FC = () => {
           title="Cancel Appointment"
           size="sm"
         >
-          <p className="text-text-secondary text-sm mb-6">
+          <p className="text-gray-500 text-sm mb-6">
             Are you sure you want to cancel this appointment? This action cannot be undone.
           </p>
           <div className="flex gap-3">
@@ -142,10 +160,10 @@ const MyAppointments: React.FC = () => {
           onClose={() => { setRescheduleId(null); setNewDate(''); }}
           title="Reschedule Appointment"
         >
-          <p className="text-text-secondary text-sm mb-4">
+          <p className="text-gray-500 text-sm mb-4">
             Select a new date for your appointment.
           </p>
-          <DatePicker selectedDate={newDate} onSelect={setNewDate} daysCount={14} />
+          <DatePicker selectedDate={newDate} onSelect={setNewDate} />
           <div className="flex gap-3 mt-6">
             <Button variant="outline" onClick={() => { setRescheduleId(null); setNewDate(''); }} fullWidth>
               Cancel

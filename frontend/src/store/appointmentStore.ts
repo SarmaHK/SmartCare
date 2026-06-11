@@ -1,154 +1,136 @@
 import { create } from 'zustand';
-import type { Appointment, AppointmentStatus, BookingData, BookingStep } from '../types';
-import { mockAppointments } from '../mock';
+import { appointmentService } from '../services/appointmentService';
 
 interface AppointmentState {
-  appointments: Appointment[];
-  filteredAppointments: Appointment[];
-  selectedAppointment: Appointment | null;
-  activeTab: AppointmentStatus | 'all';
+  appointments: any[];
   isLoading: boolean;
+  error: string | null;
 
-  // Booking flow
-  currentStep: BookingStep;
-  bookingData: BookingData;
-  isBookingComplete: boolean;
+  // Pagination & Filters
+  page: number;
+  limit: number;
+  totalPages: number;
 
   // Actions
-  fetchAppointments: () => void;
-  setActiveTab: (tab: AppointmentStatus | 'all') => void;
-  setSelectedAppointment: (appointment: Appointment | null) => void;
-  cancelAppointment: (id: string) => void;
-  rescheduleAppointment: (id: string, newDate: string, newTime: string) => void;
-
-  // Booking actions
-  setCurrentStep: (step: BookingStep) => void;
-  nextStep: () => void;
-  prevStep: () => void;
-  updateBookingData: (data: Partial<BookingData>) => void;
-  confirmBooking: () => void;
-  resetBooking: () => void;
+  fetchPatientAppointments: () => Promise<void>;
+  fetchDoctorAppointments: () => Promise<void>;
+  fetchAllAppointments: (status?: string, date?: string) => Promise<void>;
+  
+  bookAppointment: (data: any) => Promise<void>;
+  rescheduleAppointment: (id: string, data: any) => Promise<void>;
+  cancelAppointment: (id: string) => Promise<void>;
+  updateStatus: (id: string, status: string) => Promise<void>;
 }
-
-const defaultBookingData: BookingData = {
-  doctorId: '',
-  doctor: undefined,
-  date: '',
-  time: '',
-  patientName: '',
-  patientEmail: '',
-  patientPhone: '',
-  notes: '',
-};
 
 export const useAppointmentStore = create<AppointmentState>((set, get) => ({
   appointments: [],
-  filteredAppointments: [],
-  selectedAppointment: null,
-  activeTab: 'all',
   isLoading: false,
+  error: null,
+  
+  page: 1,
+  limit: 10,
+  totalPages: 1,
 
-  currentStep: 1,
-  bookingData: { ...defaultBookingData },
-  isBookingComplete: false,
-
-  fetchAppointments: () => {
-    set({ isLoading: true });
-    setTimeout(() => {
-      set({ appointments: mockAppointments, isLoading: false });
-      get().setActiveTab(get().activeTab);
-    }, 500);
-  },
-
-  setActiveTab: (tab) => {
-    const { appointments } = get();
-    const filtered =
-      tab === 'all'
-        ? appointments
-        : appointments.filter((a) => a.status === tab);
-    set({ activeTab: tab, filteredAppointments: filtered });
-  },
-
-  setSelectedAppointment: (appointment) => {
-    set({ selectedAppointment: appointment });
-  },
-
-  cancelAppointment: (id) => {
-    set((state) => {
-      const updated = state.appointments.map((a) =>
-        a.id === id ? { ...a, status: 'cancelled' as AppointmentStatus, updatedAt: new Date().toISOString() } : a
-      );
-      return { appointments: updated };
-    });
-    get().setActiveTab(get().activeTab);
-  },
-
-  rescheduleAppointment: (id, newDate, newTime) => {
-    set((state) => {
-      const updated = state.appointments.map((a) =>
-        a.id === id ? { ...a, date: newDate, time: newTime, updatedAt: new Date().toISOString() } : a
-      );
-      return { appointments: updated };
-    });
-    get().setActiveTab(get().activeTab);
-  },
-
-  // Booking flow
-  setCurrentStep: (step) => set({ currentStep: step }),
-
-  nextStep: () => {
-    const { currentStep } = get();
-    if (currentStep < 6) {
-      set({ currentStep: (currentStep + 1) as BookingStep });
+  fetchPatientAppointments: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await appointmentService.getPatientAppointments();
+      if (response.success) {
+        set({ appointments: response.data, isLoading: false });
+      } else throw new Error(response.message);
+    } catch (error: any) {
+      set({ error: error.message || 'Failed to fetch appointments', isLoading: false });
     }
   },
 
-  prevStep: () => {
-    const { currentStep } = get();
-    if (currentStep > 1) {
-      set({ currentStep: (currentStep - 1) as BookingStep });
+  fetchDoctorAppointments: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await appointmentService.getDoctorAppointments();
+      if (response.success) {
+        set({ appointments: response.data, isLoading: false });
+      } else throw new Error(response.message);
+    } catch (error: any) {
+      set({ error: error.message || 'Failed to fetch appointments', isLoading: false });
     }
   },
 
-  updateBookingData: (data) => {
-    set((state) => ({
-      bookingData: { ...state.bookingData, ...data },
-    }));
+  fetchAllAppointments: async (status, date) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { page, limit } = get();
+      const response = await appointmentService.getAll({ page, limit, status, date });
+      if (response.success) {
+        set({
+          appointments: response.data,
+          totalPages: response.totalPages,
+          isLoading: false,
+        });
+      } else throw new Error(response.message);
+    } catch (error: any) {
+      set({ error: error.message || 'Failed to fetch appointments', isLoading: false });
+    }
   },
 
-  confirmBooking: () => {
-    const { bookingData, appointments } = get();
-
-    const newAppointment: Appointment = {
-      id: `apt-${Date.now()}`,
-      patientId: `pat-new-${Date.now()}`,
-      patientName: bookingData.patientName,
-      patientEmail: bookingData.patientEmail,
-      patientPhone: bookingData.patientPhone,
-      doctorId: bookingData.doctorId,
-      doctorName: bookingData.doctor?.name || '',
-      doctorSpecialization: bookingData.doctor?.specialization || 'General Practice',
-      doctorImage: bookingData.doctor?.image || '',
-      date: bookingData.date,
-      time: bookingData.time,
-      status: 'upcoming',
-      notes: bookingData.notes,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    set({
-      appointments: [newAppointment, ...appointments],
-      isBookingComplete: true,
-      currentStep: 6,
-    });
+  bookAppointment: async (data) => {
+    set({ isLoading: true, error: null });
+    try {
+      await appointmentService.book(data);
+      set({ isLoading: false });
+      // Depending on role, we might want to refresh list here if needed
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || 'Booking failed';
+      set({ error: message, isLoading: false });
+      throw new Error(message);
+    }
   },
 
-  resetBooking: () => {
-    set({
-      currentStep: 1,
-      bookingData: { ...defaultBookingData },
-      isBookingComplete: false,
-    });
+  rescheduleAppointment: async (id, data) => {
+    set({ isLoading: true, error: null });
+    try {
+      await appointmentService.reschedule(id, data);
+      set({ isLoading: false });
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || 'Rescheduling failed';
+      set({ error: message, isLoading: false });
+      throw new Error(message);
+    }
+  },
+
+  cancelAppointment: async (id) => {
+    set({ isLoading: true, error: null });
+    try {
+      await appointmentService.cancel(id);
+      
+      // Optimistic UI update
+      set((state) => ({
+        appointments: state.appointments.map(app => 
+          app.id === id ? { ...app, status: 'CANCELLED' } : app
+        ),
+        isLoading: false
+      }));
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || 'Cancellation failed';
+      set({ error: message, isLoading: false });
+      throw new Error(message);
+    }
+  },
+
+  updateStatus: async (id, status) => {
+    set({ isLoading: true, error: null });
+    try {
+      await appointmentService.updateStatus(id, status);
+      
+      set((state) => ({
+        appointments: state.appointments.map(app => 
+          app.id === id ? { ...app, status } : app
+        ),
+        isLoading: false
+      }));
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || 'Status update failed';
+      set({ error: message, isLoading: false });
+      throw new Error(message);
+    }
   },
 }));

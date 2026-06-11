@@ -1,47 +1,28 @@
-import type { Doctor } from '../types';
-import { mockDoctors } from '../mock';
-
-// Mock service functions — will be replaced with real API calls in Phase 2
+import api from './api';
 
 export const doctorService = {
-  getAll: async (): Promise<Doctor[]> => {
-    // Simulate API delay
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(mockDoctors), 500);
-    });
+  getAll: async (params?: { page?: number; limit?: number; search?: string; specialization?: string }) => {
+    const response = await api.get('/doctors', { params });
+    return response.data;
   },
 
-  getById: async (id: string): Promise<Doctor | undefined> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const doctor = mockDoctors.find((d) => d.id === id);
-        resolve(doctor);
-      }, 300);
-    });
+  getById: async (id: string) => {
+    const response = await api.get(`/doctors/${id}`);
+    return response.data;
   },
 
-  search: async (query: string): Promise<Doctor[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const results = mockDoctors.filter(
-          (d) =>
-            d.name.toLowerCase().includes(query.toLowerCase()) ||
-            d.specialization.toLowerCase().includes(query.toLowerCase())
-        );
-        resolve(results);
-      }, 300);
-    });
+  create: async (data: any) => {
+    const response = await api.post('/doctors', data);
+    return response.data;
   },
 
-  getFeatured: async (): Promise<Doctor[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const featured = mockDoctors
-          .filter((d) => d.isAvailable)
-          .sort((a, b) => b.rating - a.rating)
-          .slice(0, 4);
-        resolve(featured);
-      }, 300);
-    });
+  update: async (id: string, data: any) => {
+    const response = await api.put(`/doctors/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string) => {
+    const response = await api.delete(`/doctors/${id}`);
+    return response.data;
   },
 };

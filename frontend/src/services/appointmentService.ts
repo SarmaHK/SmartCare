@@ -1,82 +1,38 @@
-import type { Appointment, BookingData } from '../types';
-import { mockAppointments } from '../mock';
-
-// Mock service functions — will be replaced with real API calls in Phase 2
+import api from './api';
 
 export const appointmentService = {
-  getAll: async (): Promise<Appointment[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(mockAppointments), 500);
-    });
+  getAll: async (params?: { page?: number; limit?: number; status?: string; date?: string }) => {
+    const response = await api.get('/appointments', { params });
+    return response.data;
   },
 
-  getById: async (id: string): Promise<Appointment | undefined> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const appointment = mockAppointments.find((a) => a.id === id);
-        resolve(appointment);
-      }, 300);
-    });
+  getPatientAppointments: async () => {
+    const response = await api.get('/patient/appointments');
+    return response.data;
   },
 
-  getByPatientId: async (patientId: string): Promise<Appointment[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const results = mockAppointments.filter((a) => a.patientId === patientId);
-        resolve(results);
-      }, 300);
-    });
+  getDoctorAppointments: async () => {
+    const response = await api.get('/doctor/appointments');
+    return response.data;
   },
 
-  getByDoctorId: async (doctorId: string): Promise<Appointment[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const results = mockAppointments.filter((a) => a.doctorId === doctorId);
-        resolve(results);
-      }, 300);
-    });
+  book: async (data: any) => {
+    const response = await api.post('/appointments', data);
+    return response.data;
   },
 
-  create: async (data: BookingData): Promise<Appointment> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newAppointment: Appointment = {
-          id: `apt-${Date.now()}`,
-          patientId: `pat-new-${Date.now()}`,
-          patientName: data.patientName,
-          patientEmail: data.patientEmail,
-          patientPhone: data.patientPhone,
-          doctorId: data.doctorId,
-          doctorName: data.doctor?.name || '',
-          doctorSpecialization: data.doctor?.specialization || 'General Practice',
-          doctorImage: data.doctor?.image || '',
-          date: data.date,
-          time: data.time,
-          status: 'upcoming',
-          notes: data.notes,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        resolve(newAppointment);
-      }, 500);
-    });
+  reschedule: async (id: string, data: any) => {
+    const response = await api.put(`/appointments/${id}`, data);
+    return response.data;
   },
 
-  cancel: async (id: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`Appointment ${id} cancelled`);
-        resolve(true);
-      }, 300);
-    });
+  cancel: async (id: string) => {
+    const response = await api.delete(`/appointments/${id}/cancel`);
+    return response.data;
   },
 
-  reschedule: async (id: string, newDate: string, newTime: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`Appointment ${id} rescheduled to ${newDate} at ${newTime}`);
-        resolve(true);
-      }, 300);
-    });
+  updateStatus: async (id: string, status: string) => {
+    const response = await api.patch(`/appointments/${id}/status`, { status });
+    return response.data;
   },
 };

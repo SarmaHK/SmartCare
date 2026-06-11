@@ -1,134 +1,95 @@
 import { create } from 'zustand';
-import type { Doctor, DoctorFilters, Specialization } from '../types';
-import { mockDoctors } from '../mock';
+import { doctorService } from '../services/doctorService';
 
 interface DoctorState {
-  doctors: Doctor[];
-  filteredDoctors: Doctor[];
-  selectedDoctor: Doctor | null;
-  filters: DoctorFilters;
+  doctors: any[];
+  selectedDoctor: any | null;
   isLoading: boolean;
+  error: string | null;
+
+  // Pagination & Filters
+  page: number;
+  limit: number;
+  totalPages: number;
+  search: string;
+  specialization: string;
 
   // Actions
-  fetchDoctors: () => void;
-  setSelectedDoctor: (doctor: Doctor | null) => void;
-  getDoctorById: (id: string) => Doctor | undefined;
+  fetchDoctors: () => Promise<void>;
+  getDoctorById: (id: string) => Promise<any>;
+  setSelectedDoctor: (doctor: any | null) => void;
   setSearchQuery: (query: string) => void;
-  setSpecializationFilter: (specialization: Specialization | 'all') => void;
-  setSortBy: (sortBy: DoctorFilters['sortBy']) => void;
-  setAvailableOnly: (available: boolean) => void;
-  resetFilters: () => void;
-  applyFilters: () => void;
+  setSpecializationFilter: (specialization: string) => void;
+  setPage: (page: number) => void;
 }
-
-const defaultFilters: DoctorFilters = {
-  specialization: 'all',
-  search: '',
-  sortBy: 'rating',
-  availableOnly: false,
-};
 
 export const useDoctorStore = create<DoctorState>((set, get) => ({
   doctors: [],
-  filteredDoctors: [],
   selectedDoctor: null,
-  filters: { ...defaultFilters },
   isLoading: false,
+  error: null,
+  
+  page: 1,
+  limit: 10,
+  totalPages: 1,
+  search: '',
+  specialization: 'all',
 
-  fetchDoctors: () => {
-    set({ isLoading: true });
-    // Simulate API delay
-    setTimeout(() => {
-      set({ doctors: mockDoctors, isLoading: false });
-      get().applyFilters();
-    }, 500);
+  fetchDoctors: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const { page, limit, search, specialization } = get();
+      
+      const params: any = { page, limit };
+      if (search) params.search = search;
+      if (specialization !== 'all') params.specialization = specialization;
+
+      const response = await doctorService.getAll(params);
+      
+      if (response.success) {
+        set({
+          doctors: response.data,
+          totalPages: response.totalPages,
+          isLoading: false,
+        });
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error: any) {
+      set({ error: error.message || 'Failed to fetch doctors', isLoading: false });
+    }
   },
 
-  setSelectedDoctor: (doctor) => {
-    set({ selectedDoctor: doctor });
+  getDoctorById: async (id: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await doctorService.getById(id);
+      if (response.success) {
+        set({ selectedDoctor: response.data, isLoading: false });
+        return response.data;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error: any) {
+      set({ error: error.message || 'Failed to fetch doctor details', isLoading: false });
+      return null;
+    }
   },
 
-  getDoctorById: (id) => {
-    return get().doctors.find((d) => d.id === id);
-  },
+  setSelectedDoctor: (doctor) => set({ selectedDoctor: doctor }),
 
-  setSearchQuery: (query) => {
-    set((state) => ({
-      filters: { ...state.filters, search: query },
-    }));
-    get().applyFilters();
+  setSearchQuery: (search) => {
+    set({ search, page: 1 });
+    get().fetchDoctors();
   },
 
   setSpecializationFilter: (specialization) => {
-    set((state) => ({
-      filters: { ...state.filters, specialization },
-    }));
-    get().applyFilters();
+    set({ specialization, page: 1 });
+    get().fetchDoctors();
   },
 
-  setSortBy: (sortBy) => {
-    set((state) => ({
-      filters: { ...state.filters, sortBy },
-    }));
-    get().applyFilters();
-  },
-
-  setAvailableOnly: (available) => {
-    set((state) => ({
-      filters: { ...state.filters, availableOnly: available },
-    }));
-    get().applyFilters();
-  },
-
-  resetFilters: () => {
-    set({ filters: { ...defaultFilters } });
-    get().applyFilters();
-  },
-
-  applyFilters: () => {
-    const { doctors, filters } = get();
-    let result = [...doctors];
-
-    // Search filter
-    if (filters.search) {
-      const query = filters.search.toLowerCase();
-      result = result.filter(
-        (d) =>
-          d.name.toLowerCase().includes(query) ||
-          d.specialization.toLowerCase().includes(query) ||
-          d.location.toLowerCase().includes(query)
-      );
-    }
-
-    // Specialization filter
-    if (filters.specialization !== 'all') {
-      result = result.filter((d) => d.specialization === filters.specialization);
-    }
-
-    // Available only
-    if (filters.availableOnly) {
-      result = result.filter((d) => d.isAvailable);
-    }
-
-    // Sort
-    switch (filters.sortBy) {
-      case 'rating':
-        result.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'experience':
-        result.sort((a, b) => b.experience - a.experience);
-        break;
-      case 'fee-low':
-        result.sort((a, b) => a.consultationFee - b.consultationFee);
-        break;
-      case 'fee-high':
-        result.sort((a, b) => b.consultationFee - a.consultationFee);
-        break;
-      case 'name':
-        result.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-    }
-
-    set({ filteredDoctors: result });
+  setPage: (page) => {
+    set({ page });
+    get().fetchDoctors();
   },
 }));

@@ -1,110 +1,54 @@
 import { create } from 'zustand';
-import type { DashboardStats, Appointment, Doctor, Schedule } from '../types';
-import { mockAppointments, mockDoctors, mockSchedules } from '../mock';
+import { dashboardService } from '../services/dashboard.service';
 
 interface DashboardState {
-  stats: DashboardStats;
-  recentAppointments: Appointment[];
-  doctorsList: Doctor[];
-  schedulesList: Schedule[];
+  stats: any | null;
   isLoading: boolean;
+  error: string | null;
 
-  // Actions
-  fetchDashboardData: () => void;
-  fetchDoctorDashboard: (doctorId: string) => void;
+  fetchAdminStats: () => Promise<void>;
+  fetchDoctorStats: () => Promise<void>;
+  fetchPatientStats: () => Promise<void>;
 }
 
 export const useDashboardStore = create<DashboardState>((set) => ({
-  stats: {
-    totalDoctors: 0,
-    totalPatients: 0,
-    totalAppointments: 0,
-    activeSchedules: 0,
-    todayAppointments: 0,
-    upcomingAppointments: 0,
-    completedAppointments: 0,
-    cancelledAppointments: 0,
-    revenue: 0,
-  },
-  recentAppointments: [],
-  doctorsList: [],
-  schedulesList: [],
+  stats: null,
   isLoading: false,
+  error: null,
 
-  fetchDashboardData: () => {
-    set({ isLoading: true });
-    setTimeout(() => {
-      const todayAppointments = mockAppointments.filter(
-        (a) => a.date === new Date().toISOString().split('T')[0]
-      ).length;
-      const upcomingAppointments = mockAppointments.filter(
-        (a) => a.status === 'upcoming'
-      ).length;
-      const completedAppointments = mockAppointments.filter(
-        (a) => a.status === 'completed'
-      ).length;
-      const cancelledAppointments = mockAppointments.filter(
-        (a) => a.status === 'cancelled'
-      ).length;
-      const activeSchedules = mockSchedules.filter((s) => s.isActive).length;
-
-      set({
-        stats: {
-          totalDoctors: mockDoctors.length,
-          totalPatients: 6,
-          totalAppointments: mockAppointments.length,
-          activeSchedules,
-          todayAppointments,
-          upcomingAppointments,
-          completedAppointments,
-          cancelledAppointments,
-          revenue: 128500,
-        },
-        recentAppointments: mockAppointments.slice(0, 8),
-        doctorsList: mockDoctors,
-        schedulesList: mockSchedules,
-        isLoading: false,
-      });
-    }, 500);
+  fetchAdminStats: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await dashboardService.getAdminStats();
+      if (response.success) {
+        set({ stats: response.data, isLoading: false });
+      } else throw new Error(response.message);
+    } catch (error: any) {
+      set({ error: error.message || 'Failed to fetch dashboard stats', isLoading: false });
+    }
   },
 
-  fetchDoctorDashboard: (doctorId: string) => {
-    set({ isLoading: true });
-    setTimeout(() => {
-      const doctorAppointments = mockAppointments.filter(
-        (a) => a.doctorId === doctorId
-      );
-      const today = new Date().toISOString().split('T')[0];
-      const todayAppointments = doctorAppointments.filter(
-        (a) => a.date === today
-      ).length;
-      const upcomingAppointments = doctorAppointments.filter(
-        (a) => a.status === 'upcoming'
-      ).length;
+  fetchDoctorStats: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await dashboardService.getDoctorStats();
+      if (response.success) {
+        set({ stats: response.data, isLoading: false });
+      } else throw new Error(response.message);
+    } catch (error: any) {
+      set({ error: error.message || 'Failed to fetch dashboard stats', isLoading: false });
+    }
+  },
 
-      const uniquePatients = new Set(doctorAppointments.map((a) => a.patientId));
-
-      set({
-        stats: {
-          totalDoctors: 1,
-          totalPatients: uniquePatients.size,
-          totalAppointments: doctorAppointments.length,
-          activeSchedules: mockSchedules.filter(
-            (s) => s.doctorId === doctorId && s.isActive
-          ).length,
-          todayAppointments,
-          upcomingAppointments,
-          completedAppointments: doctorAppointments.filter(
-            (a) => a.status === 'completed'
-          ).length,
-          cancelledAppointments: doctorAppointments.filter(
-            (a) => a.status === 'cancelled'
-          ).length,
-          revenue: doctorAppointments.length * 250,
-        },
-        recentAppointments: doctorAppointments,
-        isLoading: false,
-      });
-    }, 500);
+  fetchPatientStats: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await dashboardService.getPatientStats();
+      if (response.success) {
+        set({ stats: response.data, isLoading: false });
+      } else throw new Error(response.message);
+    } catch (error: any) {
+      set({ error: error.message || 'Failed to fetch dashboard stats', isLoading: false });
+    }
   },
 }));

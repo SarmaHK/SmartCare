@@ -1,23 +1,35 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Hexagon, Lock, Mail } from 'lucide-react';
+import toast from 'react-hot-toast';
 import Button from '../../components/common/Button';
+import { useAuthStore } from '../../store/authStore';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isLoading } = useAuthStore();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement actual authentication.
-    // For now, simple mock routing based on email domain or just default to patient
-    if (email.includes('doctor')) {
-      navigate('/doctor');
-    } else if (email.includes('admin')) {
-      navigate('/admin');
-    } else {
-      navigate('/patient');
+    try {
+      await login({ email, password });
+      toast.success('Successfully logged in!');
+      
+      const { user } = useAuthStore.getState();
+      const from = (location.state as any)?.from?.pathname;
+      
+      if (from) {
+        navigate(from, { replace: true });
+      } else {
+        if (user.role === 'DOCTOR') navigate('/doctor', { replace: true });
+        else if (user.role === 'ADMIN') navigate('/admin', { replace: true });
+        else navigate('/patient', { replace: true });
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to login');
     }
   };
 
@@ -107,8 +119,8 @@ const Login: React.FC = () => {
             </div>
 
             <div>
-              <Button type="submit" fullWidth size="lg">
-                Sign in
+              <Button type="submit" fullWidth size="lg" disabled={isLoading}>
+                {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
             </div>
           </form>

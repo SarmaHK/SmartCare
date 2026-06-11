@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Hexagon, Lock, Mail, User, Phone } from 'lucide-react';
+import toast from 'react-hot-toast';
 import Button from '../../components/common/Button';
+import { useAuthStore } from '../../store/authStore';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -12,19 +14,32 @@ const Register: React.FC = () => {
     confirmPassword: '',
   });
   const navigate = useNavigate();
+  const { register, isLoading } = useAuthStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match");
+      toast.error("Passwords don't match");
       return;
     }
-    // TODO: Implement actual registration logic
-    navigate('/patient');
+    
+    try {
+      await register({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        role: 'PATIENT' // Default role for public registration
+      });
+      toast.success('Successfully registered!');
+      navigate('/patient', { replace: true });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to register');
+    }
   };
 
   return (
@@ -154,8 +169,8 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <Button type="submit" fullWidth size="lg">
-                Create Account
+              <Button type="submit" fullWidth size="lg" disabled={isLoading}>
+                {isLoading ? 'Creating Account...' : 'Create Account'}
               </Button>
             </div>
           </form>
