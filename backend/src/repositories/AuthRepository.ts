@@ -12,18 +12,17 @@ export class AuthRepository {
 
   async findUserById(id: string): Promise<RowDataPacket | null> {
     const [rows] = await pool.query<RowDataPacket[]>(
-      'SELECT id, name, email, role, created_at FROM users WHERE id = ? LIMIT 1',
+      'SELECT id, full_name as name, email, role, created_at FROM users WHERE id = ? LIMIT 1',
       [id]
     );
     return rows.length > 0 ? rows[0] : null;
   }
 
   async createUser(user: any): Promise<string> {
-    const id = crypto.randomUUID();
-    await pool.query<ResultSetHeader>(
-      'INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)',
-      [id, user.name, user.email, user.password, user.role]
+    const [result] = await pool.query<ResultSetHeader>(
+      'INSERT INTO users (full_name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)',
+      [user.name, user.email, user.phone, user.password, user.role]
     );
-    return id;
+    return result.insertId.toString();
   }
 }

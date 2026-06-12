@@ -1,16 +1,14 @@
 import React from 'react';
-import { cn } from '../../utils/formatters';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   helperText?: string;
   leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, helperText, leftIcon, rightIcon, className = '', id, ...props }, ref) => {
+  ({ label, error, helperText, leftIcon, className = '', id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
     return (
@@ -18,46 +16,31 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-semibold text-text-primary mb-1.5"
+            className="block text-[13px] font-medium text-slate-600 mb-1.5"
           >
             {label}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
               {leftIcon}
             </span>
           )}
           <input
             ref={ref}
             id={inputId}
-            className={cn(
-              'w-full px-4 py-2.5 rounded-md border shadow-xs bg-surface text-text-primary',
-              'placeholder:text-text-muted text-sm',
-              'transition-all duration-200',
-              'focus:outline-none focus:border-border-focus focus:ring-4 focus:ring-primary-50',
-              'hover:border-text-muted/40',
-              error
-                ? 'border-danger focus:ring-danger/10 focus:border-danger hover:border-danger'
-                : 'border-border',
-              !!leftIcon && 'pl-10',
-              !!rightIcon && 'pr-10',
-              className
-            )}
+            className={`w-full h-9 px-3 text-sm text-slate-800 bg-white border rounded-[3px] placeholder:text-slate-400 transition-colors duration-150 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 ${
+              error ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 hover:border-slate-400'
+            } ${leftIcon ? 'pl-9' : ''} ${className}`}
             {...props}
           />
-          {rightIcon && (
-            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
-              {rightIcon}
-            </span>
-          )}
         </div>
         {error && (
-          <p className="mt-1.5 text-xs font-medium text-danger">{error}</p>
+          <p className="mt-1 text-xs text-red-600">{error}</p>
         )}
         {helperText && !error && (
-          <p className="mt-1.5 text-xs text-text-muted">{helperText}</p>
+          <p className="mt-1 text-xs text-slate-500">{helperText}</p>
         )}
       </div>
     );

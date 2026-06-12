@@ -1,31 +1,14 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { cn } from '../../utils/formatters';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
 }
-
-const variantClasses: Record<string, string> = {
-  primary: 'bg-primary text-white border border-transparent shadow-sm hover:bg-primary-dark hover:shadow-md active:bg-primary-900',
-  secondary: 'bg-white text-text-primary border border-border shadow-xs hover:bg-surface-hover hover:border-text-muted active:bg-gray-100',
-  outline: 'bg-transparent border border-border text-text-secondary hover:border-text-muted hover:text-text-primary active:bg-surface-hover',
-  ghost: 'bg-transparent text-text-secondary border border-transparent hover:bg-surface-hover hover:text-text-primary',
-  danger: 'bg-danger text-white border border-transparent shadow-sm hover:bg-red-600 hover:shadow-md active:bg-red-700',
-};
-
-const sizeClasses: Record<string, string> = {
-  sm: 'px-4 py-2 text-sm font-semibold gap-2 rounded-md',
-  md: 'px-6 py-2.5 text-base font-semibold gap-2 rounded-md',
-  lg: 'px-8 py-3.5 text-lg font-bold gap-3 rounded-lg',
-  xl: 'px-10 py-4 text-xl font-bold gap-3 rounded-xl',
-};
 
 const Button: React.FC<ButtonProps> = ({
   children,
@@ -37,25 +20,28 @@ const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   className = '',
   disabled,
-  type,
-  onClick,
+  ...rest
 }) => {
+  const base = 'inline-flex items-center justify-center font-medium transition-colors duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-blue-600';
+
+  const variants: Record<string, string> = {
+    primary: 'bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 active:bg-blue-800',
+    secondary: 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 active:bg-slate-100',
+    outline: 'bg-transparent text-slate-600 border border-slate-300 hover:bg-slate-50 active:bg-slate-100',
+    danger: 'bg-red-600 text-white border border-red-600 hover:bg-red-700 active:bg-red-800',
+  };
+
+  const sizes: Record<string, string> = {
+    sm: 'h-7 px-3 text-xs gap-1.5 rounded-[3px]',
+    md: 'h-8 px-4 text-[13px] gap-2 rounded-[3px]',
+    lg: 'h-9 px-5 text-sm gap-2 rounded-[3px]',
+  };
+
   return (
-    <motion.button
-      whileTap={!disabled && !isLoading ? { scale: 0.98 } : undefined}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      className={cn(
-        'inline-flex items-center justify-center transition-all duration-200 cursor-pointer',
-        'focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2',
-        'disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none',
-        variantClasses[variant],
-        sizeClasses[size],
-        fullWidth && 'w-full',
-        className
-      )}
+    <button
+      className={`${base} ${variants[variant]} ${sizes[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
       disabled={disabled || isLoading}
-      type={type}
-      onClick={onClick}
+      {...rest}
     >
       {isLoading ? (
         <Loader2 className="w-4 h-4 animate-spin" />
@@ -66,7 +52,7 @@ const Button: React.FC<ButtonProps> = ({
       {rightIcon && !isLoading && (
         <span className="flex-shrink-0">{rightIcon}</span>
       )}
-    </motion.button>
+    </button>
   );
 };
 

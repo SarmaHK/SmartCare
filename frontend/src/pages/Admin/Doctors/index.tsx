@@ -2,147 +2,118 @@ import React, { useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2, Calendar as CalendarIcon, User as UserIcon } from 'lucide-react';
 import { useDoctorStore } from '../../../store/doctorStore';
 import Button from '../../../components/common/Button';
-import Card from '../../../components/common/Card';
 
 const AdminDoctors: React.FC = () => {
   const { doctors, fetchDoctors, isLoading, search, setSearchQuery, specialization, setSpecializationFilter, page, totalPages, setPage } = useDoctorStore();
 
-  useEffect(() => {
-    fetchDoctors();
-  }, [fetchDoctors]);
+  useEffect(() => { fetchDoctors(); }, [fetchDoctors]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Manage Doctors</h2>
-          <p className="text-gray-500 mt-1">Add, update, or remove doctors from the system.</p>
+          <h2 className="text-lg font-semibold text-slate-900">Manage Doctors</h2>
+          <p className="text-[13px] text-slate-500 mt-0.5">Add, update, or remove doctors from the system</p>
         </div>
-        <Button leftIcon={<Plus className="w-4 h-4" />}>
-          Add New Doctor
-        </Button>
+        <Button leftIcon={<Plus className="w-4 h-4" />} size="sm">Add Doctor</Button>
       </div>
 
-      <Card className="flex flex-col">
+      {/* Table Card */}
+      <div className="bg-white border border-slate-200 rounded-[4px] shadow-sm overflow-hidden">
         {/* Toolbar */}
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-50/50">
-          <div className="relative w-full sm:w-96">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
-            </div>
+        <div className="p-3 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row gap-3 justify-between items-center">
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by name or specialization..."
+              placeholder="Search doctors..."
               value={search}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-primary focus:border-primary bg-white"
+              className="w-full h-8 pl-8 pr-3 text-[13px] bg-white border border-slate-300 rounded-[3px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
             />
           </div>
-          <div className="flex gap-2">
-            <select 
-              className="border border-gray-200 rounded-lg text-sm py-2 px-3 bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-              value={specialization}
-              onChange={(e) => setSpecializationFilter(e.target.value)}
-            >
-              <option value="all">All Specializations</option>
-              <option value="Cardiology">Cardiology</option>
-              <option value="Pediatrics">Pediatrics</option>
-              <option value="Dermatology">Dermatology</option>
-              <option value="Neurology">Neurology</option>
-            </select>
-          </div>
+          <select
+            className="h-8 text-[13px] border border-slate-300 rounded-[3px] px-3 bg-white focus:outline-none focus:border-blue-500"
+            value={specialization}
+            onChange={(e) => setSpecializationFilter(e.target.value)}
+          >
+            <option value="all">All Specializations</option>
+            <option value="Cardiology">Cardiology</option>
+            <option value="Pediatrics">Pediatrics</option>
+            <option value="Dermatology">Dermatology</option>
+            <option value="Neurology">Neurology</option>
+          </select>
         </div>
 
-        {/* Data Table */}
+        {/* Table */}
         <div className="overflow-x-auto">
           {isLoading ? (
-             <div className="p-8 text-center text-gray-500">Loading doctors...</div>
+            <div className="p-8 text-center text-xs text-slate-400">Loading doctors...</div>
           ) : (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left">
               <thead>
-                <tr className="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
-                  <th className="py-3 px-6 font-medium">Doctor</th>
-                  <th className="py-3 px-6 font-medium">Specialization</th>
-                  <th className="py-3 px-6 font-medium">Contact</th>
-                  <th className="py-3 px-6 font-medium text-right">Actions</th>
+                <tr className="border-b border-slate-200">
+                  <th className="px-4 py-2 text-[11px] font-semibold text-slate-500 uppercase">Doctor</th>
+                  <th className="px-4 py-2 text-[11px] font-semibold text-slate-500 uppercase">Specialization</th>
+                  <th className="px-4 py-2 text-[11px] font-semibold text-slate-500 uppercase">Details</th>
+                  <th className="px-4 py-2 text-[11px] font-semibold text-slate-500 uppercase text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {doctors.map(doctor => (
-                  <tr key={doctor.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-                          <UserIcon className="w-5 h-5 text-gray-400" />
+              <tbody>
+                {doctors.map((doc: any) => (
+                  <tr key={doc.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center">
+                          <UserIcon className="w-4 h-4 text-slate-400" />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{doctor.user_id}</p>
-                          <p className="text-xs text-gray-500">ID: {doctor.id}</p>
+                          <p className="text-[13px] font-medium text-slate-800">{doc.user_id}</p>
+                          <p className="text-[11px] text-slate-400">ID: {doc.id}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary">
-                        {doctor.specialization}
+                    <td className="px-4 py-2.5">
+                      <span className="text-[12px] font-medium text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-[3px]">
+                        {doc.specialization}
                       </span>
                     </td>
-                    <td className="py-4 px-6">
-                      <p className="text-xs text-gray-500">Experience: {doctor.experience_years} years</p>
-                      <p className="text-xs text-gray-500">Fee: ${doctor.consultation_fee}</p>
+                    <td className="px-4 py-2.5">
+                      <p className="text-[12px] text-slate-600">{doc.experience_years} yrs exp · ${doc.consultation_fee}</p>
                     </td>
-                    <td className="py-4 px-6 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary-50 transition-colors" title="View Schedule">
-                          <CalendarIcon className="w-4 h-4" />
+                    <td className="px-4 py-2.5 text-right">
+                      <div className="flex justify-end gap-1">
+                        <button className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-[3px] transition-colors" title="Schedule">
+                          <CalendarIcon className="w-3.5 h-3.5" />
                         </button>
-                        <button className="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Edit Doctor">
-                          <Edit2 className="w-4 h-4" />
+                        <button className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-[3px] transition-colors" title="Edit">
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
-                        <button className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Delete Doctor">
-                          <Trash2 className="w-4 h-4" />
+                        <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-[3px] transition-colors" title="Delete">
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))}
                 {doctors.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="py-12 text-center text-gray-500">
-                      <UserIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-lg font-medium text-gray-900">No doctors found</p>
-                      <p className="text-sm">Try adjusting your search criteria.</p>
-                    </td>
-                  </tr>
+                  <tr><td colSpan={4} className="px-4 py-8 text-center text-xs text-slate-400">No doctors found</td></tr>
                 )}
               </tbody>
             </table>
           )}
         </div>
-        
+
         {/* Pagination */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500 bg-gray-50/50">
-          <div>
-            Page <span className="font-medium text-gray-900">{page}</span> of <span className="font-medium text-gray-900">{totalPages}</span>
-          </div>
+        <div className="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-[12px] text-slate-500">
+          <span>Page <span className="font-medium text-slate-800">{page}</span> of <span className="font-medium text-slate-800">{totalPages}</span></span>
           <div className="flex gap-1">
-            <button 
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-50" 
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-            >
-              Previous
-            </button>
-            <button 
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-50"
-              disabled={page >= totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              Next
-            </button>
+            <button className="h-7 px-3 border border-slate-300 rounded-[3px] bg-white hover:bg-slate-50 disabled:opacity-50 text-[12px]" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
+            <button className="h-7 px-3 border border-slate-300 rounded-[3px] bg-white hover:bg-slate-50 disabled:opacity-50 text-[12px]" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next</button>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

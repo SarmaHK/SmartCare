@@ -1,9 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Calendar } from 'lucide-react';
-import { cn } from '../../utils/formatters';
 import { getNextDates } from '../../utils/formatters';
-import { staggerContainer, staggerItem } from '../../hooks/useAnimations';
 
 interface DatePickerProps {
   selectedDate: string;
@@ -16,39 +13,29 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onSelect, daysCou
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-4">
-        <Calendar className="w-4 h-4 text-primary" />
-        <h4 className="text-sm font-medium text-text-primary">Select a Date</h4>
+      <div className="flex items-center gap-2 mb-3">
+        <Calendar className="w-4 h-4 text-slate-500" />
+        <h4 className="text-[13px] font-medium text-slate-700">Select a Date</h4>
       </div>
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2"
-      >
+      <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
         {dates.map((item) => (
-          <motion.button
+          <button
             key={item.date}
-            variants={staggerItem}
             type="button"
             onClick={() => onSelect(item.date)}
-            className={cn(
-              'flex flex-col items-center p-3 rounded-xl border transition-all duration-200',
+            className={`flex flex-col items-center p-2 rounded-[3px] border text-center transition-colors ${
               selectedDate === item.date
-                ? 'bg-primary text-white border-primary shadow-md'
-                : 'bg-surface border-border text-text-primary hover:border-primary hover:text-primary cursor-pointer'
-            )}
+                ? 'bg-blue-600 border-blue-600 text-white'
+                : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+            }`}
           >
-            <span className={cn(
-              'text-xs font-medium mb-1',
-              selectedDate === item.date ? 'text-white/80' : 'text-text-muted'
-            )}>
+            <span className={`text-[10px] mb-0.5 ${selectedDate === item.date ? 'text-blue-200' : 'text-slate-400'}`}>
               {item.dayName.slice(0, 3)}
             </span>
-            <span className="text-sm font-semibold">{item.display}</span>
-          </motion.button>
+            <span className="text-[13px] font-medium">{item.display}</span>
+          </button>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 };

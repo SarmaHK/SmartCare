@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Hexagon, Lock, Mail } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Button from '../../components/common/Button';
 import { useAuthStore } from '../../store/authStore';
 
 const Login: React.FC = () => {
@@ -16,11 +15,11 @@ const Login: React.FC = () => {
     e.preventDefault();
     try {
       await login({ email, password });
-      toast.success('Successfully logged in!');
-      
+      toast.success('Login successful');
+
       const { user } = useAuthStore.getState();
       const from = (location.state as any)?.from?.pathname;
-      
+
       if (from) {
         navigate(from, { replace: true });
       } else {
@@ -29,99 +28,71 @@ const Login: React.FC = () => {
         else navigate('/patient', { replace: true });
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to login');
+      toast.error(error.message || 'Login failed');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <div className="w-12 h-12 rounded bg-primary flex items-center justify-center shadow-lg">
-            <Hexagon className="w-8 h-8 text-white fill-white" />
-          </div>
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Or{' '}
-          <Link to="/register" className="font-medium text-primary hover:text-primary-dark">
-            register as a new patient
-          </Link>
-        </p>
+    <div className="min-h-screen flex bg-white font-sans">
+      {/* Left Panel — Image */}
+      <div className="hidden lg:block lg:w-[45%] relative">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/images/auth-bg.png')" }}
+        />
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm sm:rounded-lg sm:px-10 border border-gray-100">
-          <form className="space-y-6" onSubmit={handleLogin}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
+      {/* Right Panel — Login Form */}
+      <div className="flex-1 flex items-center justify-center p-8 lg:p-16 relative">
+        <div className="w-full max-w-[600px]">
+          <h1 className="text-[28px] font-bold text-slate-900 mb-2">Sign In</h1>
+          <div className="w-8 h-1 bg-slate-800 mb-10"></div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+              {/* Email */}
+              <div className="sm:col-span-2">
+                <label className="block text-[13px] font-bold text-slate-800 mb-2">Email</label>
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  placeholder="admin@smartcare.com / doctor@... / user@..."
+                  name="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter email"
+                  className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-100 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-colors placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* Password */}
+              <div className="sm:col-span-2">
+                <label className="block text-[13px] font-bold text-slate-800 mb-2">Password</label>
+                <input
+                  name="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-100 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-colors placeholder:text-slate-400"
                 />
               </div>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                />
-              </div>
+            {/* Submit Button */}
+            <div className="pt-6">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-14 bg-[#1055e5] hover:bg-blue-700 text-white rounded-full font-bold text-[15px] flex items-center justify-center relative transition-colors shadow-lg shadow-blue-500/30"
+              >
+                {isLoading ? 'Signing In...' : 'Sign In'}
+                {!isLoading && (
+                  <ArrowRight className="absolute right-6 w-5 h-5" />
+                )}
+              </button>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <a href="#" className="font-medium text-primary hover:text-primary-dark">
-                  Forgot your password?
-                </a>
-              </div>
-            </div>
-
-            <div>
-              <Button type="submit" fullWidth size="lg" disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Sign in'}
-              </Button>
+            {/* Register Link */}
+            <div className="pt-4 text-center sm:text-left">
+              <p className="text-[12px] font-bold text-slate-500 uppercase tracking-wide">
+                Don't have an account?{' '}
+                <Link to="/register" className="text-blue-600 hover:text-blue-700 hover:underline">
+                  Registration
+                </Link>
+              </p>
             </div>
           </form>
         </div>

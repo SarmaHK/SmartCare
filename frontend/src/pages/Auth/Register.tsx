@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Hexagon, Lock, Mail, User, Phone } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Button from '../../components/common/Button';
 import { useAuthStore } from '../../store/authStore';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
+    name: '', email: '', phone: '', password: '', confirmPassword: '', gender: 'female'
   });
   const navigate = useNavigate();
   const { register, isLoading } = useAuthStore();
@@ -26,152 +21,129 @@ const Register: React.FC = () => {
       toast.error("Passwords don't match");
       return;
     }
-    
     try {
       await register({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password,
-        role: 'PATIENT' // Default role for public registration
+        name: formData.name, email: formData.email,
+        phone: formData.phone, password: formData.password, role: 'PATIENT',
       });
-      toast.success('Successfully registered!');
+      toast.success('Account created successfully');
       navigate('/patient', { replace: true });
     } catch (error: any) {
-      toast.error(error.message || 'Failed to register');
+      toast.error(error.message || 'Registration failed');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <div className="w-12 h-12 rounded bg-primary flex items-center justify-center shadow-lg">
-            <Hexagon className="w-8 h-8 text-white fill-white" />
-          </div>
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Create a Patient Account
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link to="/login" className="font-medium text-primary hover:text-primary-dark">
-            Sign in here
-          </Link>
-        </p>
+    <div className="min-h-screen flex bg-white font-sans">
+      {/* Left Panel — Image */}
+      <div className="hidden lg:block lg:w-[45%] relative">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/images/auth-bg.png')" }}
+        />
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm sm:rounded-lg sm:px-10 border border-gray-100">
-          <form className="space-y-6" onSubmit={handleRegister}>
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
-                </div>
+      {/* Right Panel — Registration Form */}
+      <div className="flex-1 flex items-center justify-center p-8 lg:p-16 relative">
+        <div className="w-full max-w-[600px]">
+          <h1 className="text-[28px] font-bold text-slate-900 mb-2">Registration</h1>
+          <div className="w-8 h-1 bg-slate-800 mb-10"></div>
+
+          <form onSubmit={handleRegister} className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+              {/* Full Name */}
+              <div>
+                <label className="block text-[13px] font-bold text-slate-800 mb-2">Full name</label>
                 <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  placeholder="John Doe"
+                  name="name" required value={formData.name} onChange={handleChange}
+                  placeholder="Enter your name"
+                  className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-100 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-colors placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-[13px] font-bold text-slate-800 mb-2">Email</label>
+                <input
+                  name="email" type="email" required value={formData.email} onChange={handleChange}
+                  placeholder="Enter email"
+                  className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-100 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-colors placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-[13px] font-bold text-slate-800 mb-2">Phone number</label>
+                <input
+                  name="phone" type="tel" required value={formData.phone} onChange={handleChange}
+                  placeholder="Enter phone number"
+                  className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-100 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-colors placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-[13px] font-bold text-slate-800 mb-2">Password</label>
+                <input
+                  name="password" type="password" required value={formData.password} onChange={handleChange}
+                  placeholder="Enter password"
+                  className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-100 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-colors placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-[13px] font-bold text-slate-800 mb-2">Confirm password</label>
+                <input
+                  name="confirmPassword" type="password" required value={formData.confirmPassword} onChange={handleChange}
+                  placeholder="Confirm password"
+                  className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-100 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-colors placeholder:text-slate-400"
                 />
               </div>
             </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  placeholder="john@example.com"
-                />
+            {/* Gender */}
+            <div className="pt-2">
+              <label className="block text-[13px] font-bold text-slate-800 mb-4">Gender</label>
+              <div className="flex flex-wrap gap-8">
+                {['Male', 'Female', 'Other', 'Prefer not to say'].map((g) => (
+                  <label key={g} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="gender"
+                      value={g.toLowerCase()}
+                      checked={formData.gender === g.toLowerCase()}
+                      onChange={handleChange}
+                      className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 focus:ring-blue-500"
+                    />
+                    <span className="text-[14px] text-slate-700">{g}</span>
+                  </label>
+                ))}
               </div>
             </div>
 
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                Phone Number
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Phone className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  required
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  placeholder="+1 (555) 123-4567"
-                />
-              </div>
+            {/* Submit Button */}
+            <div className="pt-6">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-14 bg-[#1055e5] hover:bg-blue-700 text-white rounded-full font-bold text-[15px] flex items-center justify-center relative transition-colors shadow-lg shadow-blue-500/30"
+              >
+                {isLoading ? 'Creating...' : 'Next Step'}
+                {!isLoading && (
+                  <ArrowRight className="absolute right-6 w-5 h-5" />
+                )}
+              </button>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm Password
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Button type="submit" fullWidth size="lg" disabled={isLoading}>
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </Button>
+            {/* Login Link */}
+            <div className="pt-4 text-center sm:text-left">
+              <p className="text-[12px] font-bold text-slate-500 uppercase tracking-wide">
+                Already have an account?{' '}
+                <Link to="/login" className="text-blue-600 hover:text-blue-700 hover:underline">
+                  Log in
+                </Link>
+              </p>
             </div>
           </form>
         </div>

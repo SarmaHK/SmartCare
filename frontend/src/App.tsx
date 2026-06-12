@@ -11,25 +11,20 @@ const App: React.FC = () => {
         toastOptions={{
           duration: 3000,
           style: {
-            background: '#FFFFFF',
-            color: '#0F172A',
-            border: '1px solid #E2E8F0',
-            borderRadius: '1rem',
-            padding: '12px 16px',
-            fontSize: '14px',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.08)',
+            background: '#ffffff',
+            color: '#1e293b',
+            border: '1px solid #e2e8f0',
+            borderRadius: '3px',
+            padding: '10px 14px',
+            fontSize: '13px',
+            fontFamily: "'Inter', sans-serif",
+            boxShadow: '0 1px 3px rgba(0,0,0,.1)',
           },
           success: {
-            iconTheme: {
-              primary: '#22C55E',
-              secondary: '#FFFFFF',
-            },
+            iconTheme: { primary: '#16a34a', secondary: '#ffffff' },
           },
           error: {
-            iconTheme: {
-              primary: '#EF4444',
-              secondary: '#FFFFFF',
-            },
+            iconTheme: { primary: '#dc2626', secondary: '#ffffff' },
           },
         }}
       />
