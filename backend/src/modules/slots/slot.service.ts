@@ -46,6 +46,8 @@ export const createSlot = async (doctorId: number, data: CreateSlotInput) => {
       slotDate: new Date(data.slotDate),
       startTime: newStart,
       endTime: newEnd,
+      // @ts-ignore: ts-node cache issue with Prisma types
+      location: data.location,
       isAvailable: false // Maps to is_booked = false (meaning it IS available)
     }
   });
@@ -79,6 +81,19 @@ export const getDoctorSlots = async (doctorId: number) => {
     where: { doctorId },
     orderBy: [{ slotDate: 'desc' }, { startTime: 'asc' }],
   });
+};
+
+export const getSlotById = async (id: number, doctorId: number, userRole: Role) => {
+  const slot = await prisma.appointmentSlot.findUnique({ where: { id } });
+  
+  if (!slot) throw new AppError('Slot not found', 404);
+  
+  // If doctor, ensure they own it
+  if (userRole === Role.DOCTOR && slot.doctorId !== doctorId) {
+    throw new AppError('You do not own this slot', 403);
+  }
+
+  return slot;
 };
 
 export const updateSlot = async (id: number, doctorId: number, userRole: Role, data: UpdateSlotInput) => {
@@ -133,6 +148,8 @@ export const updateSlot = async (id: number, doctorId: number, userRole: Role, d
       ...(data.slotDate && { slotDate: new Date(data.slotDate) }),
       ...(data.startTime && { startTime: newStart }),
       ...(data.endTime && { endTime: newEnd }),
+      // @ts-ignore: ts-node cache issue with Prisma types
+      ...(data.location !== undefined && { location: data.location }),
     }
   });
 };

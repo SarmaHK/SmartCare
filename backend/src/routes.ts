@@ -5,6 +5,7 @@ import doctorRoutes from './modules/doctors/doctor.routes';
 import slotRoutes from './modules/slots/slot.routes';
 import appointmentRoutes from './modules/appointments/appointment.routes';
 import adminRoutes from './modules/admin/admin.routes';
+import notificationRoutes from './modules/notifications/notification.routes';
 import { authenticate } from './middleware/auth.middleware';
 import { authorize } from './middleware/role.middleware';
 import { Roles } from './config/roles';
@@ -28,5 +29,8 @@ router.use('/appointments', appointmentRoutes);
 
 // Protected Admin Routes
 router.use('/admin', adminRoutes);
+
+// Protected Notification Routes
+router.use('/notifications', notificationRoutes);
 
 export default router;

@@ -4,11 +4,11 @@ import { Button } from '../../../components/common/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/cards/Card';
 import { type Slot } from '../../../services/slot.service';
 import { format } from 'date-fns';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, MapPin } from 'lucide-react';
 
 interface SlotFormProps {
   initialData?: Slot;
-  onSubmit: (data: { slotDate: string; startTime: string; endTime: string }) => Promise<void>;
+  onSubmit: (data: { slotDate: string; startTime: string; endTime: string; location?: string }) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -17,6 +17,7 @@ export const SlotForm: React.FC<SlotFormProps> = ({ initialData, onSubmit, isLoa
     slotDate: '',
     startTime: '',
     endTime: '',
+    location: '',
   });
 
   const [error, setError] = useState('');
@@ -25,8 +26,9 @@ export const SlotForm: React.FC<SlotFormProps> = ({ initialData, onSubmit, isLoa
     if (initialData) {
       setFormData({
         slotDate: format(new Date(initialData.slotDate), 'yyyy-MM-dd'),
-        startTime: initialData.startTime.slice(0, 5),
-        endTime: initialData.endTime.slice(0, 5),
+        startTime: initialData.startTime.substring(11, 16),
+        endTime: initialData.endTime.substring(11, 16),
+        location: initialData.location || '',
       });
     }
   }, [initialData]);
@@ -63,8 +65,9 @@ export const SlotForm: React.FC<SlotFormProps> = ({ initialData, onSubmit, isLoa
 
     await onSubmit({
       slotDate: formData.slotDate,
-      startTime: formData.startTime + ':00',
-      endTime: formData.endTime + ':00',
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      location: formData.location || undefined,
     });
   };
 
@@ -92,6 +95,16 @@ export const SlotForm: React.FC<SlotFormProps> = ({ initialData, onSubmit, isLoa
             onChange={handleChange}
             required
             leftIcon={<Calendar className="h-4 w-4" />}
+          />
+
+          <Input
+            label="Location / Clinic (Optional)"
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            placeholder="e.g. City Hospital, Downtown Clinic"
+            leftIcon={<MapPin className="h-4 w-4" />}
           />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

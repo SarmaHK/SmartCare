@@ -68,7 +68,7 @@ export const UserDetailsPage: React.FC = () => {
       const response = await adminService.updateDoctor(user.id, {
         specialization: doctorFormData.specialization,
         experienceYears: Number(doctorFormData.experienceYears),
-        consultationFee: Number(doctorFormData.consultationFee),
+        consultationFee: String(doctorFormData.consultationFee),
         qualification: doctorFormData.qualification,
         bio: doctorFormData.bio
       });

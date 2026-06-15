@@ -58,7 +58,7 @@ export const ProfilePage: React.FC = () => {
         email: formData.email,
         specialization: formData.specialization,
         experienceYears: Number(formData.experienceYears),
-        consultationFee: Number(formData.consultationFee),
+        consultationFee: String(formData.consultationFee),
         qualification: formData.qualification,
         bio: formData.bio
       };

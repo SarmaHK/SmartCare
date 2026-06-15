@@ -51,7 +51,7 @@ export const DoctorAppointmentTable: React.FC<DoctorAppointmentTableProps> = ({ 
                   {format(new Date(apt.slot.slotDate), 'MMM d, yyyy')}
                 </div>
                 <div className="text-sm text-secondary-500">
-                  {apt.slot.startTime.slice(0, 5)} – {apt.slot.endTime.slice(0, 5)}
+                  {apt.slot.startTime.substring(11, 16)} – {apt.slot.endTime.substring(11, 16)}
                 </div>
               </TableCell>
               <TableCell>

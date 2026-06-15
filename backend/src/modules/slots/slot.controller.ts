@@ -40,6 +40,19 @@ export const getMySlots = async (req: AuthenticatedRequest, res: Response, next:
   }
 };
 
+export const getSlotById = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const slot = await slotService.getSlotById(
+      Number(req.params.id), 
+      Number(req.user!.id), 
+      req.user!.role as Role
+    );
+    res.status(200).json({ success: true, message: 'Slot fetched successfully', data: slot });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const updateSlot = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const slot = await slotService.updateSlot(

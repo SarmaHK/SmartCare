@@ -8,6 +8,7 @@ export const createSlotSchema = z.object({
     slotDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid date format' }),
     startTime: z.string().regex(timeFormat, { message: 'Invalid start time format (HH:mm)' }),
     endTime: z.string().regex(timeFormat, { message: 'Invalid end time format (HH:mm)' }),
+    location: z.string().optional(),
   }).refine((data) => {
     const start = new Date(`1970-01-01T${data.startTime}:00`);
     const end = new Date(`1970-01-01T${data.endTime}:00`);
@@ -23,6 +24,7 @@ export const updateSlotSchema = z.object({
     slotDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid date format' }).optional(),
     startTime: z.string().regex(timeFormat).optional(),
     endTime: z.string().regex(timeFormat).optional(),
+    location: z.string().optional(),
   }).refine((data) => {
     if (data.startTime && data.endTime) {
       const start = new Date(`1970-01-01T${data.startTime}:00`);

@@ -18,6 +18,9 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onUpdate }) =
     address: profile.address || '',
     emergencyContact: profile.emergencyContact || '',
     medicalHistory: profile.medicalHistory || '',
+    fullName: profile.user.fullName || '',
+    email: profile.user.email || '',
+    phone: profile.user.phone || '',
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +35,12 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onUpdate }) =
     try {
       const payload = {
         ...formData,
-        gender: formData.gender === '' ? undefined : formData.gender as 'MALE' | 'FEMALE' | 'OTHER'
+        gender: formData.gender === '' ? undefined : formData.gender as 'MALE' | 'FEMALE' | 'OTHER',
+        user: {
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+        }
       };
       const response = await patientService.updateProfile(payload);
       if (response.success) {
@@ -48,11 +56,11 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onUpdate }) =
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Read Only Fields */}
+      {/* Basic Info Fields */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-6 border-b border-secondary-200">
-        <Input label="Full Name" value={profile.user.fullName} disabled />
-        <Input label="Email Address" value={profile.user.email} disabled />
-        <Input label="Phone Number" value={profile.user.phone || 'N/A'} disabled />
+        <Input label="Full Name" name="fullName" value={formData.fullName} onChange={handleChange} required />
+        <Input label="Email Address" name="email" type="email" value={formData.email} onChange={handleChange} required />
+        <Input label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} required />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

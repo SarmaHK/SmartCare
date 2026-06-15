@@ -35,7 +35,17 @@ export const bookAppointment = async (patientId: number, data: BookInput) => {
       },
       include: {
         doctor: { select: { fullName: true, doctorProfile: { select: { specialization: true } } } },
+        patient: { select: { fullName: true } },
         slot: true
+      }
+    });
+
+    // 3. Notify Doctor
+    await tx.notification.create({
+      data: {
+        userId: data.doctorId,
+        title: 'New Appointment Booked',
+        message: `Patient ${appointment.patient.fullName} has booked an appointment for ${slot.slotDate.toISOString().split('T')[0]} at ${slot.startTime.toISOString().substring(11, 16)}.`
       }
     });
 
@@ -108,6 +118,57 @@ export const getDoctorAppointments = async (
   };
 };
 
+export const getAppointmentById = async (id: number, userId: number, userRole: Role) => {
+  const appt = await prisma.appointment.findUnique({
+    where: { id },
+    include: {
+      patient: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          phone: true,
+          patientProfile: true
+        }
+      },
+      doctor: {
+        select: {
+          id: true,
+          fullName: true,
+          doctorProfile: true
+        }
+      },
+      slot: true
+    }
+  });
+
+  if (!appt) throw new AppError('Appointment not found', 404);
+
+  if (userRole === Role.PATIENT && appt.patientId !== userId) {
+    throw new AppError('You do not own this appointment', 403);
+  }
+  if (userRole === Role.DOCTOR && appt.doctorId !== userId) {
+    throw new AppError('You do not own this appointment', 403);
+  }
+
+  const { patient, doctor, ...rest } = appt;
+  
+  return {
+    ...rest,
+    doctor: {
+      ...(doctor.doctorProfile || {}),
+      user: { fullName: doctor.fullName }
+    },
+    patient: {
+      user: { fullName: patient.fullName, phone: patient.phone, email: patient.email },
+      bloodGroup: patient.patientProfile?.bloodGroup,
+      medicalHistory: patient.patientProfile?.medicalHistory,
+      dateOfBirth: patient.patientProfile?.dateOfBirth,
+      gender: patient.patientProfile?.gender
+    }
+  };
+};
+
 export const getAllAppointments = async (skip = 0, take = 10, status?: AppointmentStatus, doctorId?: number) => {
   const whereClause: any = {};
   if (status) whereClause.status = status;
@@ -152,7 +213,7 @@ export const getAllAppointments = async (skip = 0, take = 10, status?: Appointme
 };
 
 export const cancelAppointment = async (id: number, userId: number, userRole: Role) => {
-  const appointment = await prisma.appointment.findUnique({ where: { id }, include: { slot: true } });
+  const appointment = await prisma.appointment.findUnique({ where: { id }, include: { slot: true, patient: { select: { fullName: true } }, doctor: { select: { fullName: true } } } });
   if (!appointment) throw new AppError('Appointment not found', 404);
 
   if (userRole === Role.PATIENT && appointment.patientId !== userId) {
@@ -180,12 +241,50 @@ export const cancelAppointment = async (id: number, userId: number, userRole: Ro
       data: { status: AppointmentStatus.CANCELLED }
     });
 
+    // 3. Notify relevant parties
+    const dateStr = appointment.slot.slotDate.toISOString().split('T')[0];
+    const timeStr = appointment.slot.startTime.toISOString().substring(11, 16);
+    
+    if (userRole === Role.PATIENT) {
+      await tx.notification.create({
+        data: {
+          userId: appointment.doctorId,
+          title: 'Appointment Cancelled',
+          message: `Patient ${appointment.patient.fullName} has cancelled their appointment on ${dateStr} at ${timeStr}.`
+        }
+      });
+    } else if (userRole === Role.DOCTOR) {
+      await tx.notification.create({
+        data: {
+          userId: appointment.patientId,
+          title: 'Appointment Cancelled',
+          message: `Dr. ${appointment.doctor.fullName} has cancelled your appointment on ${dateStr} at ${timeStr}.`
+        }
+      });
+    } else {
+      // Admin cancelled
+      await tx.notification.createMany({
+        data: [
+          {
+            userId: appointment.doctorId,
+            title: 'Appointment Cancelled by Admin',
+            message: `The appointment with ${appointment.patient.fullName} on ${dateStr} at ${timeStr} was cancelled by an administrator.`
+          },
+          {
+            userId: appointment.patientId,
+            title: 'Appointment Cancelled by Admin',
+            message: `Your appointment with Dr. ${appointment.doctor.fullName} on ${dateStr} at ${timeStr} was cancelled by an administrator.`
+          }
+        ]
+      });
+    }
+
     return updated;
   });
 };
 
 export const rescheduleAppointment = async (id: number, userId: number, userRole: Role, data: RescheduleInput) => {
-  const appointment = await prisma.appointment.findUnique({ where: { id }, include: { slot: true } });
+  const appointment = await prisma.appointment.findUnique({ where: { id }, include: { slot: true, patient: { select: { fullName: true } }, doctor: { select: { fullName: true } } } });
   if (!appointment) throw new AppError('Appointment not found', 404);
 
   if (userRole === Role.PATIENT && appointment.patientId !== userId) {
@@ -231,12 +330,50 @@ export const rescheduleAppointment = async (id: number, userId: number, userRole
       data: { slotId: data.newSlotId }
     });
 
+    // 4. Notify the relevant parties
+    const dateStr = newSlot.slotDate.toISOString().split('T')[0];
+    const timeStr = newSlot.startTime.toISOString().substring(11, 16);
+
+    if (userRole === Role.PATIENT) {
+      await tx.notification.create({
+        data: {
+          userId: appointment.doctorId,
+          title: 'Appointment Rescheduled',
+          message: `Patient ${appointment.patient.fullName} has rescheduled their appointment to ${dateStr} at ${timeStr}.`
+        }
+      });
+    } else if (userRole === Role.DOCTOR) {
+      await tx.notification.create({
+        data: {
+          userId: appointment.patientId,
+          title: 'Appointment Rescheduled',
+          message: `Dr. ${appointment.doctor.fullName} has rescheduled your appointment to ${dateStr} at ${timeStr}.`
+        }
+      });
+    } else {
+      // Admin
+      await tx.notification.createMany({
+        data: [
+          {
+            userId: appointment.doctorId,
+            title: 'Appointment Rescheduled by Admin',
+            message: `The appointment with ${appointment.patient.fullName} was rescheduled by an administrator to ${dateStr} at ${timeStr}.`
+          },
+          {
+            userId: appointment.patientId,
+            title: 'Appointment Rescheduled by Admin',
+            message: `Your appointment with Dr. ${appointment.doctor.fullName} was rescheduled by an administrator to ${dateStr} at ${timeStr}.`
+          }
+        ]
+      });
+    }
+
     return updated;
   });
 };
 
 export const updateAppointmentStatus = async (id: number, doctorId: number, userRole: Role, data: StatusUpdateInput) => {
-  const appointment = await prisma.appointment.findUnique({ where: { id } });
+  const appointment = await prisma.appointment.findUnique({ where: { id }, include: { patient: { select: { fullName: true } }, doctor: { select: { fullName: true } } } });
   if (!appointment) throw new AppError('Appointment not found', 404);
 
   if (userRole === Role.DOCTOR && appointment.doctorId !== doctorId) {
@@ -276,6 +413,36 @@ export const updateAppointmentStatus = async (id: number, doctorId: number, user
       where: { id },
       data: { status: target }
     });
+
+    // Notify patient and/or doctor
+    if (userRole === Role.ADMIN) {
+      await tx.notification.createMany({
+        data: [
+          {
+            userId: appointment.patientId,
+            title: target === AppointmentStatus.CONFIRMED ? 'Appointment Confirmed' : 'Appointment Status Updated',
+            message: target === AppointmentStatus.CONFIRMED 
+              ? 'Your appointment has been confirmed by an administrator.' 
+              : `Your appointment status has been updated to ${target} by an administrator.`
+          },
+          {
+            userId: appointment.doctorId,
+            title: 'Appointment Status Updated by Admin',
+            message: `The appointment with ${appointment.patient.fullName} has been updated to ${target} by an administrator.`
+          }
+        ]
+      });
+    } else {
+      await tx.notification.create({
+        data: {
+          userId: appointment.patientId,
+          title: target === AppointmentStatus.CONFIRMED ? 'Appointment Confirmed' : 'Appointment Status Updated',
+          message: target === AppointmentStatus.CONFIRMED 
+            ? 'Your appointment has been confirmed by the doctor.' 
+            : `Your appointment status is now ${target}.`
+        }
+      });
+    }
 
     return updated;
   });

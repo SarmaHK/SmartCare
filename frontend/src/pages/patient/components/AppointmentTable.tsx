@@ -48,7 +48,7 @@ export const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments
               <TableCell className="text-secondary-700">
                 {format(new Date(apt.slot.slotDate), 'MMM d, yyyy')}
               </TableCell>
-              <TableCell className="text-secondary-700">{apt.slot.startTime.slice(0, 5)}</TableCell>
+              <TableCell className="text-secondary-700">{apt.slot.startTime.substring(11, 16)}</TableCell>
               <TableCell>
                 <Badge variant={statusBadge.variant} dot>
                   {statusBadge.label}

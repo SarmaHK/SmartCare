@@ -154,7 +154,7 @@ export const AppointmentDetailsPage: React.FC = () => {
                 <div>
                   <p className="text-sm text-secondary-500">Time</p>
                   <p className="font-bold text-secondary-900">
-                    {appointment.slot.startTime.slice(0, 5)} - {appointment.slot.endTime.slice(0, 5)}
+                    {appointment.slot.startTime.substring(11, 16)} - {appointment.slot.endTime.substring(11, 16)}
                   </p>
                 </div>
               </div>

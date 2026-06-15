@@ -30,6 +30,7 @@ export const SlotTable: React.FC<SlotTableProps> = ({ slots, onEdit, onDelete })
         <TableRow>
           <TableHead>Date</TableHead>
           <TableHead>Time</TableHead>
+          <TableHead>Location</TableHead>
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
@@ -41,7 +42,10 @@ export const SlotTable: React.FC<SlotTableProps> = ({ slots, onEdit, onDelete })
               {format(new Date(slot.slotDate), 'MMM d, yyyy (EEE)')}
             </TableCell>
             <TableCell className="text-secondary-600">
-              {slot.startTime.slice(0, 5)} – {slot.endTime.slice(0, 5)}
+              {slot.startTime.substring(11, 16)} – {slot.endTime.substring(11, 16)}
+            </TableCell>
+            <TableCell className="text-secondary-600">
+              {slot.location || '-'}
             </TableCell>
             <TableCell>
               <Badge variant={slot.isAvailable ? 'success' : 'default'} dot>

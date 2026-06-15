@@ -101,13 +101,18 @@ export const SlotSelector: React.FC<SlotSelectorProps> = ({
                   type="button"
                   onClick={() => onSelectSlot(slot)}
                   className={cn(
-                    'rounded-lg border py-2.5 text-center text-sm font-medium transition-all',
+                    'rounded-lg border py-2 flex flex-col items-center justify-center text-center transition-all',
                     selectedSlotId === slot.id
                       ? 'border-primary-600 bg-primary-50 text-primary-700 ring-2 ring-primary-600/20'
                       : 'border-secondary-200 bg-white text-secondary-700 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700'
                   )}
                 >
-                  {slot.startTime.slice(0, 5)}
+                  <span className="text-sm font-medium">{slot.startTime.substring(11, 16)}</span>
+                  {slot.location && (
+                    <span className="text-[10px] text-secondary-500 truncate w-full px-1" title={slot.location}>
+                      {slot.location}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>

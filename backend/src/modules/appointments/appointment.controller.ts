@@ -40,6 +40,19 @@ export const getDoctorAppointments = async (req: AuthenticatedRequest, res: Resp
   }
 };
 
+export const getAppointmentById = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const appointment = await appointmentService.getAppointmentById(
+      Number(req.params.id),
+      Number(req.user!.id),
+      req.user!.role as Role
+    );
+    res.status(200).json({ success: true, message: 'Appointment fetched successfully', data: appointment });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getAllAppointments = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { skip, take, status, doctorId } = req.query;

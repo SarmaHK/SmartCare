@@ -11,6 +11,7 @@ const router = Router();
 router.get('/available', authenticate, authorize(Roles.PATIENT, Roles.ADMIN, Roles.DOCTOR), controller.getAvailableSlots);
 router.get('/my', authenticate, authorize(Roles.DOCTOR), controller.getMySlots);
 router.post('/', authenticate, authorize(Roles.DOCTOR, Roles.ADMIN), validate(createSlotSchema), controller.createSlot);
+router.get('/:id', authenticate, authorize(Roles.DOCTOR, Roles.ADMIN), controller.getSlotById);
 router.put('/:id', authenticate, authorize(Roles.DOCTOR, Roles.ADMIN), validate(updateSlotSchema), controller.updateSlot);
 router.delete('/:id', authenticate, authorize(Roles.DOCTOR, Roles.ADMIN), controller.deleteSlot);
 

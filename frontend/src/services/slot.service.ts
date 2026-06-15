@@ -6,6 +6,7 @@ export interface Slot {
   slotDate: string;
   startTime: string;
   endTime: string;
+  location?: string;
   isAvailable: boolean;
 }
 
@@ -26,12 +27,12 @@ export const slotService = {
     return response.data;
   },
 
-  createSlot: async (data: { slotDate: string; startTime: string; endTime: string }): Promise<{ success: boolean; data: Slot }> => {
+  createSlot: async (data: { slotDate: string; startTime: string; endTime: string; location?: string }): Promise<{ success: boolean; data: Slot }> => {
     const response = await api.post('/slots', data);
     return response.data;
   },
 
-  updateSlot: async (id: number | string, data: { slotDate?: string; startTime?: string; endTime?: string }): Promise<{ success: boolean; data: Slot }> => {
+  updateSlot: async (id: number | string, data: { slotDate?: string; startTime?: string; endTime?: string; location?: string }): Promise<{ success: boolean; data: Slot }> => {
     const response = await api.put(`/slots/${id}`, data);
     return response.data;
   },

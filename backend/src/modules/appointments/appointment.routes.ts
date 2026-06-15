@@ -19,7 +19,8 @@ router.patch('/:id/status', authenticate, authorize(Roles.DOCTOR, Roles.ADMIN), 
 router.post('/', authenticate, authorize(Roles.PATIENT), validate(bookSchema), controller.bookAppointment);
 router.get('/my', authenticate, authorize(Roles.PATIENT), controller.getMyAppointments);
 
-// Patient & Admin Shared
+// Patient & Admin & Doctor Shared
+router.get('/:id', authenticate, authorize(Roles.PATIENT, Roles.ADMIN, Roles.DOCTOR), controller.getAppointmentById);
 router.patch('/:id/cancel', authenticate, authorize(Roles.PATIENT, Roles.ADMIN), controller.cancelAppointment);
 router.patch('/:id/reschedule', authenticate, authorize(Roles.PATIENT, Roles.ADMIN), validate(rescheduleSchema), controller.rescheduleAppointment);
 

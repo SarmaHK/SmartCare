@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Bell, ChevronRight, LogOut, User } from 'lucide-react';
+import { Menu, ChevronRight, LogOut, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../utils/cn';
+import { NotificationDropdown } from './NotificationDropdown';
 
 interface TopHeaderProps {
   onOpenSidebar: () => void;
@@ -86,14 +87,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onOpenSidebar, role, porta
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        <button
-          type="button"
-          className="relative rounded-lg p-2 text-secondary-400 transition-colors hover:bg-secondary-50 hover:text-secondary-600"
-          aria-label="Notifications"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary-500 ring-2 ring-white" />
-        </button>
+        <NotificationDropdown />
 
         <div className="relative" ref={menuRef}>
           <button

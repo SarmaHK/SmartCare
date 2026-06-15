@@ -13,7 +13,7 @@ import {
   Stethoscope,
   Clock,
   Banknote,
-  MapPin,
+
   ArrowLeft,
   CalendarCheck,
   CheckCircle2,
@@ -146,12 +146,7 @@ export const DoctorDetailsPage: React.FC = () => {
                   </span>
                   <span className="font-medium text-secondary-900">Rs.{doctor.consultationFee}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="flex items-center gap-2 text-secondary-500">
-                    <MapPin className="h-4 w-4" /> Location
-                  </span>
-                  <span className="font-medium text-secondary-900">SmartCare Clinic</span>
-                </div>
+
               </div>
             </CardContent>
           </Card>
@@ -211,7 +206,7 @@ export const DoctorDetailsPage: React.FC = () => {
                     <div>
                       <p className="text-secondary-400">Time</p>
                       <p className="font-medium text-secondary-900">
-                        {selectedSlot.startTime.slice(0, 5)} – {selectedSlot.endTime.slice(0, 5)}
+                        {selectedSlot.startTime.substring(11, 16)} – {selectedSlot.endTime.substring(11, 16)}
                       </p>
                     </div>
                     <div>

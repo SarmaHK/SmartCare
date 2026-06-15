@@ -50,7 +50,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
           <div className="flex items-center gap-2 text-sm text-secondary-700">
             <Clock className="h-4 w-4 shrink-0 text-primary-600" />
             <span className="font-medium">
-              {appointment.slot.startTime.slice(0, 5)} – {appointment.slot.endTime.slice(0, 5)}
+              {appointment.slot.startTime.substring(11, 16)} – {appointment.slot.endTime.substring(11, 16)}
             </span>
           </div>
         </div>

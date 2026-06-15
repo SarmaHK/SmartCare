@@ -65,15 +65,24 @@ export const updateProfile = async (userId: number, data: any) => {
   });
 
   if (data.user) {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        fullName: data.user.fullName,
-        phone: data.user.phone,
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          fullName: data.user.fullName,
+          phone: data.user.phone,
+          email: data.user.email,
+        }
+      });
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        throw new AppError('Email or phone number is already in use by another account', 400);
       }
-    });
+      throw error;
+    }
     if (data.user.fullName) updatedProfile.user.fullName = data.user.fullName;
     if (data.user.phone) updatedProfile.user.phone = data.user.phone;
+    if (data.user.email) updatedProfile.user.email = data.user.email;
   }
 
   return updatedProfile;
