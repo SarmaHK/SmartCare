@@ -40,6 +40,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onUpdate }) =
           fullName: formData.fullName,
           email: formData.email,
           phone: formData.phone,
+          role: profile.user.role,
         }
       };
       const response = await patientService.updateProfile(payload);
