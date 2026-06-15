@@ -1,15 +1,15 @@
 import React from 'react';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import DashboardLayout from '../components/layout/DashboardLayout';
-import Login from '../pages/Auth/Login';
-import Register from '../pages/Auth/Register';
+import DashboardLayout from '../layouts/DashboardLayout';
+import Login from '../pages/auth/Login';
+import Register from '../pages/auth/Register';
 
 // Placeholders for dashboard index pages
-import DoctorDashboard from '../pages/DoctorDashboard';
-import AdminDashboard from '../pages/AdminDashboard';
-import AdminDoctors from '../pages/Admin/Doctors';
-import BookAppointment from '../pages/BookAppointment';
-import MyAppointments from '../pages/MyAppointments';
+import DoctorDashboard from '../pages/doctor/Dashboard';
+import AdminDashboard from '../pages/admin/Dashboard';
+import AdminDoctors from '../pages/admin/Doctors';
+import BookAppointment from '../pages/patient/BookAppointment';
+import MyAppointments from '../pages/patient/MyAppointments';
 
 import NotFound from '../pages/NotFound';
 import { 
@@ -17,11 +17,11 @@ import {
   PATIENT_SIDEBAR_LINKS, 
   DOCTOR_SIDEBAR_LINKS, 
   ADMIN_SIDEBAR_LINKS 
-} from '../constants';
+} from '../utils/constants';
 
-import { ProtectedRoute } from '../components/layout/ProtectedRoute';
-import { RoleGuard } from '../components/layout/RoleGuard';
-import PatientDashboard from '../pages/Patient/Dashboard';
+import { ProtectedRoute } from '../layouts/ProtectedRoute';
+import { RoleGuard } from '../layouts/RoleGuard';
+import PatientDashboard from '../pages/patient/Dashboard';
 
 const router = createBrowserRouter([
   {

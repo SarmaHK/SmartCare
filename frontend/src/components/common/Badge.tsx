@@ -1,5 +1,5 @@
 import React from 'react';
-import { APPOINTMENT_STATUS_CONFIG } from '../../constants';
+import { APPOINTMENT_STATUS_CONFIG } from '../../utils/constants';
 import type { AppointmentStatus } from '../../types';
 
 interface BadgeProps {

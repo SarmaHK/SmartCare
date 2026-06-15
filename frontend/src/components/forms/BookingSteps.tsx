@@ -1,6 +1,6 @@
 import React from 'react';
 import { Check } from 'lucide-react';
-import { BOOKING_STEPS } from '../../constants';
+import { BOOKING_STEPS } from '../../utils/constants';
 import type { BookingStep } from '../../types';
 
 interface BookingStepsProps {
