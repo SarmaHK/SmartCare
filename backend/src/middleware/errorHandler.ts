@@ -20,8 +20,27 @@ export const errorHandler = (
     errors = err.errors;
   } else if (err instanceof ZodError) {
     statusCode = 400;
-    message = 'Validation Error';
-    errors = (err as any).errors || (err as any).issues;
+    const issues = err.issues ?? (err as { errors?: typeof err.issues }).errors ?? [];
+    const fieldLabels: Record<string, string> = {
+      fullName: 'Full name',
+      email: 'Email',
+      password: 'Password',
+      phone: 'Phone number',
+      role: 'Role',
+    };
+    errors = issues.map((issue) => {
+      const field = String(issue.path[issue.path.length - 1] ?? 'field');
+      const label = fieldLabels[field] || field;
+      let fieldMessage = issue.message;
+      if (issue.code === 'invalid_type' && (issue as { received?: string }).received === 'undefined') {
+        fieldMessage = `${label} is required`;
+      }
+      return { path: issue.path, field, message: fieldMessage };
+    });
+    message =
+      errors.length === 1
+        ? (errors[0] as { message: string }).message
+        : errors.map((e: { message: string }) => e.message).join('. ');
   } else {
     // Log unexpected errors
     logger.error('Unexpected Error:', err);

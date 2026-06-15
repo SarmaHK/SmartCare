@@ -3,7 +3,11 @@ import * as doctorService from './doctor.service';
 
 export const getAllDoctors = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const doctors = await doctorService.getAllDoctors();
+    const page = req.query.page ? Number(req.query.page) : undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const search = req.query.search as string;
+
+    const doctors = await doctorService.getAllDoctors({ page, limit, search });
     res.status(200).json({ success: true, message: 'Doctors fetched successfully', data: doctors });
   } catch (error) {
     next(error);

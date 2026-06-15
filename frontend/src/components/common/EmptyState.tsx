@@ -1,30 +1,54 @@
 import React from 'react';
-import { FileX } from 'lucide-react';
-import Button from './Button';
+import { cn } from '../../utils/cn';
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
   title: string;
   description?: string;
-  actionLabel?: string;
-  onAction?: () => void;
+  action?: React.ReactNode;
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, actionLabel, onAction }) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({
+  icon,
+  title,
+  description,
+  action,
+  className,
+  size = 'md',
+}) => {
+  const sizes = {
+    sm: { container: 'py-8', icon: 'h-12 w-12', iconInner: 'h-6 w-6' },
+    md: { container: 'py-12', icon: 'h-14 w-14', iconInner: 'h-7 w-7' },
+    lg: { container: 'py-16', icon: 'h-16 w-16', iconInner: 'h-8 w-8' },
+  };
+
+  const s = sizes[size];
+
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-        {icon || <FileX className="w-5 h-5 text-slate-400" />}
-      </div>
-      <h3 className="text-sm font-semibold text-slate-800 mb-1">{title}</h3>
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center rounded-xl border border-dashed border-secondary-200 bg-white text-center',
+        s.container,
+        className
+      )}
+    >
+      {icon && (
+        <div
+          className={cn(
+            'mb-4 flex items-center justify-center rounded-full bg-secondary-50 text-secondary-400',
+            s.icon
+          )}
+        >
+          {icon}
+        </div>
+      )}
+      <h3 className="text-base font-semibold text-secondary-900">{title}</h3>
       {description && (
-        <p className="text-xs text-slate-500 max-w-sm mb-5">{description}</p>
+        <p className="mt-2 max-w-sm text-sm leading-relaxed text-secondary-500">{description}</p>
       )}
-      {actionLabel && onAction && (
-        <Button onClick={onAction} size="sm">{actionLabel}</Button>
-      )}
+      {action && <div className="mt-6">{action}</div>}
     </div>
   );
 };
-
-export default EmptyState;

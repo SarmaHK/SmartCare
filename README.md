@@ -1,87 +1,65 @@
-# 🏥 Smart Care
+# SmartCare - Medical Appointment Management System
 
-> Modern Healthcare Appointment Management Platform
+SmartCare is a comprehensive, modern, and professional healthcare appointment management system. Designed specifically for university projects, it features a clean blue-and-white theme, seamless user experiences, and robust role-based access control.
 
-Smart Care is a full-stack healthcare appointment booking platform that allows patients to book appointments with doctors, manage existing appointments, view schedules, and enables administrators to manage doctors and availability.
+## 🚀 Features
 
-## Tech Stack
+- **Multi-Role System**: Dedicated interfaces for Patients, Doctors, and Administrators.
+- **Patient Portal**: Browse doctors, view profiles, and book appointments through an intuitive interface.
+- **Doctor Portal**: Manage availability slots and seamlessly update patient appointment statuses.
+- **Admin Dashboard**: Total system oversight with rich analytics, reports, and user management capabilities.
+- **Modern Design**: Built strictly against a custom design system prioritizing professional, healthcare-oriented aesthetics.
+
+## 💻 Tech Stack
 
 ### Frontend
-- React 19 + TypeScript
+- React 19
+- TypeScript
 - Vite
 - Tailwind CSS
 - React Router DOM
-- Zustand (State Management)
-- Framer Motion (Animations)
-- React Hook Form + Zod (Form Validation)
-- Axios (HTTP Client)
-- Lucide React (Icons)
-- React Hot Toast (Notifications)
+- Axios
+- Recharts (Analytics)
 
-### Backend (Phase 2)
-- Node.js + Express.js
+### Backend
+- Node.js & Express
 - TypeScript
 - MySQL
+- JWT Authentication
 
-## Getting Started
+## 🛠️ Getting Started
 
 ### Prerequisites
-- Node.js >= 18
-- npm >= 9
+- Node.js (v18+)
+- MySQL (v8+)
 
-### Installation
+### 1. Database Setup
+Execute the SQL scripts found in `backend/database_schema.sql` to initialize the database structure and default admin account.
 
+### 2. Backend Setup
 ```bash
-# Install all dependencies
-npm run install:all
+cd backend
+npm install
+# Configure your .env file with DB credentials and JWT secret
+npm run dev
 ```
 
-### Development
-
+### 3. Frontend Setup
 ```bash
-# Start frontend dev server
-npm run dev:frontend
-
-# Start backend dev server (Phase 2)
-npm run dev:backend
+cd frontend
+npm install
+npm run dev
 ```
 
-### Build
+## 📚 Documentation
 
-```bash
-# Build frontend for production
-npm run build:frontend
-```
+Detailed documentation is available in the `docs/` directory:
+- [API Documentation](docs/API_DOCUMENTATION.md)
+- [Database Schema](docs/DATABASE_SCHEMA.md)
+- [Project Structure](docs/PROJECT_STRUCTURE.md)
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
+- [User Guide](docs/USER_GUIDE.md)
+- [Testing Report](docs/TESTING_REPORT.md)
 
-## Project Structure
-
-```
-smart-care/
-├── frontend/          # React frontend application
-├── backend/           # Express backend API (Phase 2)
-├── README.md
-├── .gitignore
-└── package.json
-```
-
-## Features
-
-### Patient Module
-- Browse and search doctors
-- Filter by specialization
-- View doctor profiles and availability
-- Book, cancel, and reschedule appointments
-
-### Doctor Module
-- View today's and upcoming appointments
-- Check schedule
-- View patient details
-
-### Admin Module
-- Dashboard with system statistics
-- Manage doctors and schedules
-- Monitor appointments
-
-## License
-
-ISC
+## 🎨 Design Philosophy
+SmartCare avoids overly flashy or "startup" style designs. It relies on a classic, minimalistic, and trustworthy aesthetic using primary blue and neutral white palettes, ensuring the system feels professional and accessible to all users.

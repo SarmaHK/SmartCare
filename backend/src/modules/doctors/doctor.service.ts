@@ -4,21 +4,49 @@ import { AppError } from '../../utils/errors/AppError';
 import { CreateDoctorInput, UpdateDoctorInput } from './doctor.types';
 import { Role } from '@prisma/client';
 
-export const getAllDoctors = async () => {
-  const doctors = await prisma.user.findMany({
-    where: {
-      role: Role.DOCTOR,
-      isActive: true,
-    },
-    include: {
-      doctorProfile: true,
-      _count: {
-        select: { appointmentSlots: true }
-      }
-    },
-  });
+export const getAllDoctors = async (params?: { page?: number; limit?: number; search?: string }) => {
+  const { page = 1, limit = 10, search } = params || {};
+  const skip = (page - 1) * limit;
 
-  return doctors.map(({ password, ...doc }) => doc);
+  const whereClause: any = {
+    role: Role.DOCTOR,
+    isActive: true,
+  };
+
+  if (search) {
+    whereClause.OR = [
+      { fullName: { contains: search } },
+      { doctorProfile: { specialization: { contains: search } } }
+    ];
+  }
+
+  const [doctors, total] = await Promise.all([
+    prisma.user.findMany({
+      where: whereClause,
+      include: {
+        doctorProfile: true,
+        _count: {
+          select: { appointmentSlots: true }
+        }
+      },
+      skip,
+      take: limit,
+    }),
+    prisma.user.count({ where: whereClause })
+  ]);
+
+  return {
+    doctors: doctors.map((doc) => {
+      const { password, doctorProfile, ...userWithoutPassword } = doc;
+      return {
+        ...(doctorProfile || {}),
+        user: userWithoutPassword
+      };
+    }),
+    total,
+    page,
+    limit
+  };
 };
 
 export const getDoctorById = async (id: number) => {
@@ -32,12 +60,15 @@ export const getDoctorById = async (id: number) => {
     },
   });
 
-  if (!doctor) {
+  if (!doctor || !doctor.doctorProfile) {
     throw new AppError('Doctor not found', 404);
   }
 
   const { password, ...docWithoutPassword } = doctor;
-  return docWithoutPassword;
+  return {
+    ...doctor.doctorProfile,
+    user: docWithoutPassword
+  };
 };
 
 export const createDoctor = async (data: CreateDoctorInput) => {
@@ -81,7 +112,7 @@ export const createDoctor = async (data: CreateDoctorInput) => {
   });
 
   const { password, ...userWithoutPassword } = result.user;
-  return { ...userWithoutPassword, profile: result.profile };
+  return { ...result.profile, user: userWithoutPassword };
 };
 
 export const updateDoctor = async (id: number, data: UpdateDoctorInput) => {
@@ -121,8 +152,11 @@ export const updateDoctor = async (id: number, data: UpdateDoctorInput) => {
     include: { doctorProfile: true }
   });
 
-  const { password, ...userWithoutPassword } = updatedUser;
-  return userWithoutPassword;
+  const { password, doctorProfile, ...userWithoutPassword } = updatedUser;
+  return {
+    ...(doctorProfile || {}),
+    user: userWithoutPassword
+  };
 };
 
 export const deleteDoctor = async (id: number) => {
