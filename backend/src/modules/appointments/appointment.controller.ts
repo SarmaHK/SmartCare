@@ -23,8 +23,18 @@ export const getMyAppointments = async (req: AuthenticatedRequest, res: Response
 
 export const getDoctorAppointments = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const appointments = await appointmentService.getDoctorAppointments(Number(req.user!.id));
-    res.status(200).json({ success: true, message: 'Appointments fetched successfully', data: appointments });
+    const page = req.query.page ? Number(req.query.page) : undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const patientName = req.query.patientName as string;
+    const status = req.query.status as string;
+
+    const appointmentsData = await appointmentService.getDoctorAppointments(Number(req.user!.id), {
+      page,
+      limit,
+      patientName,
+      status
+    });
+    res.status(200).json({ success: true, message: 'Appointments fetched successfully', data: appointmentsData });
   } catch (error) {
     next(error);
   }

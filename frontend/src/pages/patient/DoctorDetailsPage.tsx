@@ -12,7 +12,7 @@ import { SlotSelector } from './components/SlotSelector';
 import {
   Stethoscope,
   Clock,
-  IndianRupee,
+  Banknote,
   MapPin,
   ArrowLeft,
   CalendarCheck,
@@ -142,9 +142,9 @@ export const DoctorDetailsPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="flex items-center gap-2 text-secondary-500">
-                    <IndianRupee className="h-4 w-4" /> Consultation Fee
+                    <Banknote className="h-4 w-4" /> Consultation Fee
                   </span>
-                  <span className="font-medium text-secondary-900">₹{doctor.consultationFee}</span>
+                  <span className="font-medium text-secondary-900">Rs.{doctor.consultationFee}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="flex items-center gap-2 text-secondary-500">
@@ -220,7 +220,7 @@ export const DoctorDetailsPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-secondary-400">Fee</p>
-                      <p className="font-medium text-secondary-900">₹{doctor.consultationFee}</p>
+                      <p className="font-medium text-secondary-900">Rs.{doctor.consultationFee}</p>
                     </div>
                   </div>
                 </div>
@@ -236,7 +236,7 @@ export const DoctorDetailsPage: React.FC = () => {
                 <div className="flex flex-col gap-4 border-t border-secondary-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-secondary-600">
                     Fee payable at clinic:{' '}
-                    <span className="font-bold text-secondary-900">₹{doctor.consultationFee}</span>
+                    <span className="font-bold text-secondary-900">Rs.{doctor.consultationFee}</span>
                   </p>
                   <Button onClick={handleBookAppointment} isLoading={isBooking} size="lg">
                     Confirm Booking

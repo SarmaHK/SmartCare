@@ -4,7 +4,7 @@ import { PageHeader } from '../../components/common/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/cards/Card';
 import { adminService, type DoctorSummary } from '../../services/admin.service';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { ArrowLeft, Stethoscope, Award, IndianRupee, Users, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Stethoscope, Award, Banknote, Users, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export const DoctorDetailsPage: React.FC = () => {
@@ -79,10 +79,10 @@ export const DoctorDetailsPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-secondary-700">
-                  <IndianRupee className="w-5 h-5 text-primary-500 shrink-0" />
+                  <Banknote className="w-5 h-5 text-primary-500 shrink-0" />
                   <div>
                     <p className="text-xs text-secondary-500">Consultation Fee</p>
-                    <p className="font-medium">₹{doctor.consultationFee}</p>
+                    <p className="font-medium">Rs.{doctor.consultationFee}</p>
                   </div>
                 </div>
               </div>

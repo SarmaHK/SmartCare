@@ -9,6 +9,8 @@ import { Roles } from '../../config/roles';
 const router = Router();
 
 router.get('/', authenticate, authorize(Roles.ADMIN, Roles.PATIENT, Roles.DOCTOR), controller.getAllDoctors);
+router.get('/profile', authenticate, authorize(Roles.DOCTOR), controller.getMyProfile);
+router.put('/profile', authenticate, authorize(Roles.DOCTOR), validate(updateDoctorSchema), controller.updateMyProfile);
 router.get('/:id', authenticate, authorize(Roles.ADMIN, Roles.PATIENT, Roles.DOCTOR), controller.getDoctorById);
 router.post('/', authenticate, authorize(Roles.ADMIN), validate(createDoctorSchema), controller.createDoctor);
 router.put('/:id', authenticate, authorize(Roles.ADMIN, Roles.DOCTOR), validate(updateDoctorSchema), controller.updateDoctor);

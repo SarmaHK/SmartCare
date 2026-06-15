@@ -40,6 +40,7 @@ export const getAllDoctors = async (params?: { page?: number; limit?: number; se
       const { password, doctorProfile, ...userWithoutPassword } = doc;
       return {
         ...(doctorProfile || {}),
+        id: doc.id,
         user: userWithoutPassword
       };
     }),
@@ -60,13 +61,20 @@ export const getDoctorById = async (id: number) => {
     },
   });
 
-  if (!doctor || !doctor.doctorProfile) {
+  if (!doctor) {
     throw new AppError('Doctor not found', 404);
   }
 
   const { password, ...docWithoutPassword } = doctor;
   return {
-    ...doctor.doctorProfile,
+    ...(doctor.doctorProfile || {
+      specialization: 'Not specified',
+      qualification: '',
+      experienceYears: 0,
+      consultationFee: 0,
+      bio: ''
+    }),
+    id: doctor.id,
     user: docWithoutPassword
   };
 };
@@ -112,7 +120,7 @@ export const createDoctor = async (data: CreateDoctorInput) => {
   });
 
   const { password, ...userWithoutPassword } = result.user;
-  return { ...result.profile, user: userWithoutPassword };
+  return { ...result.profile, id: result.user.id, user: userWithoutPassword };
 };
 
 export const updateDoctor = async (id: number, data: UpdateDoctorInput) => {
@@ -125,7 +133,14 @@ export const updateDoctor = async (id: number, data: UpdateDoctorInput) => {
     throw new AppError('Doctor not found', 404);
   }
 
-  // If email or phone changes, normally we check duplicates, but we only have phone in update schema
+  // If email or phone changes, check duplicates
+  if (data.email && data.email !== doctor.email) {
+    const existingEmail = await prisma.user.findUnique({
+      where: { email: data.email }
+    });
+    if (existingEmail) throw new AppError('Email already in use', 409);
+  }
+
   if (data.phone && data.phone !== doctor.phone) {
     const existingPhone = await prisma.user.findUnique({
       where: { phone: data.phone }
@@ -137,15 +152,25 @@ export const updateDoctor = async (id: number, data: UpdateDoctorInput) => {
     where: { id },
     data: {
       ...(data.fullName && { fullName: data.fullName }),
+      ...(data.email && { email: data.email }),
       ...(data.phone && { phone: data.phone }),
       ...(typeof data.isActive === 'boolean' && { isActive: data.isActive }),
       doctorProfile: {
-        update: {
-          ...(data.specialization && { specialization: data.specialization }),
-          ...(data.qualification && { qualification: data.qualification }),
-          ...(data.experienceYears !== undefined && { experienceYears: data.experienceYears }),
-          ...(data.consultationFee !== undefined && { consultationFee: data.consultationFee }),
-          ...(data.bio && { bio: data.bio }),
+        upsert: {
+          create: {
+            specialization: data.specialization || 'Not specified',
+            qualification: data.qualification || '',
+            experienceYears: data.experienceYears || 0,
+            consultationFee: data.consultationFee || 0,
+            bio: data.bio || '',
+          },
+          update: {
+            ...(data.specialization && { specialization: data.specialization }),
+            ...(data.qualification && { qualification: data.qualification }),
+            ...(data.experienceYears !== undefined && { experienceYears: data.experienceYears }),
+            ...(data.consultationFee !== undefined && { consultationFee: data.consultationFee }),
+            ...(data.bio && { bio: data.bio }),
+          }
         }
       }
     },
@@ -155,6 +180,7 @@ export const updateDoctor = async (id: number, data: UpdateDoctorInput) => {
   const { password, doctorProfile, ...userWithoutPassword } = updatedUser;
   return {
     ...(doctorProfile || {}),
+    id: updatedUser.id,
     user: userWithoutPassword
   };
 };

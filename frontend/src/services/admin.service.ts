@@ -152,6 +152,14 @@ export const adminService = {
     return { success: body.success, data: { doctors, total: doctors.length } };
   },
 
+  updateDoctor: async (
+    id: number | string,
+    data: Partial<DoctorProfile> & { fullName?: string; phone?: string; isActive?: boolean }
+  ): Promise<{ success: boolean; data: DoctorSummary }> => {
+    const response = await api.put(`/doctors/${id}`, data);
+    return response.data;
+  },
+
   getDoctorSummary: async (
     id: number | string
   ): Promise<{ success: boolean; data: DoctorSummary & { slots: unknown[] } }> => {

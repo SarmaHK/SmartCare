@@ -44,7 +44,7 @@ export const bookAppointment = async (patientId: number, data: BookInput) => {
 };
 
 export const getMyAppointments = async (patientId: number) => {
-  return prisma.appointment.findMany({
+  const appointments = await prisma.appointment.findMany({
     where: { patientId },
     include: {
       doctor: { select: { fullName: true, doctorProfile: { select: { specialization: true, consultationFee: true } } } },
@@ -52,17 +52,60 @@ export const getMyAppointments = async (patientId: number) => {
     },
     orderBy: { slot: { slotDate: 'desc' } }
   });
+
+  return appointments.map(appt => {
+    const { doctor, ...rest } = appt;
+    return {
+      ...rest,
+      doctor: {
+        ...(doctor.doctorProfile || {}),
+        user: { fullName: doctor.fullName }
+      }
+    };
+  });
 };
 
-export const getDoctorAppointments = async (doctorId: number) => {
-  return prisma.appointment.findMany({
-    where: { doctorId },
-    include: {
-      patient: { select: { fullName: true, phone: true } },
-      slot: true
-    },
-    orderBy: { slot: { slotDate: 'desc' } }
-  });
+export const getDoctorAppointments = async (
+  doctorId: number,
+  params?: { page?: number; limit?: number; patientName?: string; status?: string }
+) => {
+  const { page = 1, limit = 100, patientName, status } = params || {};
+  const skip = (page - 1) * limit;
+
+  const whereClause: any = { doctorId };
+  if (status) whereClause.status = status;
+  if (patientName) {
+    whereClause.patient = {
+      fullName: { contains: patientName }
+    };
+  }
+
+  const [appointments, total] = await Promise.all([
+    prisma.appointment.findMany({
+      where: whereClause,
+      include: {
+        patient: { select: { fullName: true, phone: true } },
+        slot: true
+      },
+      orderBy: { slot: { slotDate: 'desc' } },
+      skip,
+      take: limit,
+    }),
+    prisma.appointment.count({ where: whereClause })
+  ]);
+
+  return { 
+    appointments: appointments.map(appt => {
+      const { patient, ...rest } = appt;
+      return {
+        ...rest,
+        patient: {
+          user: { fullName: patient.fullName, phone: patient.phone }
+        }
+      };
+    }), 
+    total 
+  };
 };
 
 export const getAllAppointments = async (skip = 0, take = 10, status?: AppointmentStatus, doctorId?: number) => {
@@ -86,7 +129,20 @@ export const getAllAppointments = async (skip = 0, take = 10, status?: Appointme
   ]);
 
   return {
-    data,
+    data: data.map(appt => {
+      const { doctor, patient, ...rest } = appt;
+      return {
+        ...rest,
+        doctor: {
+          id: doctor.id,
+          user: { fullName: doctor.fullName }
+        },
+        patient: {
+          id: patient.id,
+          user: { fullName: patient.fullName }
+        }
+      };
+    }),
     meta: {
       total,
       skip,

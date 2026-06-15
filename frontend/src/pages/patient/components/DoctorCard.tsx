@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '../../../components/cards/Card';
 import { Button } from '../../../components/common/Button';
 import { type DoctorProfile } from '../../../services/doctor.service';
-import { Stethoscope, Clock, IndianRupee, ArrowRight } from 'lucide-react';
+import { Stethoscope, Clock, Banknote, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface DoctorCardProps {
@@ -50,8 +50,8 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({ doctor }) => {
               {doctor.experienceYears} yrs experience
             </span>
             <span className="flex items-center gap-1.5">
-              <IndianRupee className="h-4 w-4 text-secondary-400" />
-              ₹{doctor.consultationFee}
+              <Banknote className="h-4 w-4 text-secondary-400" />
+              Rs.{doctor.consultationFee}
             </span>
             <span className="rounded-md bg-secondary-100 px-2.5 py-1 text-xs font-medium text-secondary-700">
               {doctor.qualification}

@@ -11,7 +11,15 @@ export const ProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<DoctorProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [bio, setBio] = useState('');
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    specialization: '',
+    experienceYears: 0,
+    consultationFee: 0,
+    qualification: '',
+    bio: ''
+  });
 
   useEffect(() => {
     fetchProfile();
@@ -23,7 +31,15 @@ export const ProfilePage: React.FC = () => {
       const response = await doctorService.getMyProfile();
       if (response.success) {
         setProfile(response.data);
-        setBio(response.data.bio || '');
+        setFormData({
+          fullName: response.data.user.fullName || '',
+          email: response.data.user.email || '',
+          specialization: response.data.specialization || 'Not specified',
+          experienceYears: response.data.experienceYears || 0,
+          consultationFee: Number(response.data.consultationFee) || 0,
+          qualification: response.data.qualification || '',
+          bio: response.data.bio || ''
+        });
       }
     } catch (error) {
       console.error('Failed to fetch profile', error);
@@ -37,7 +53,16 @@ export const ProfilePage: React.FC = () => {
     if (!profile) return;
     setIsSaving(true);
     try {
-      const response = await doctorService.updateMyProfile({ bio });
+      const payload = {
+        fullName: formData.fullName,
+        email: formData.email,
+        specialization: formData.specialization,
+        experienceYears: Number(formData.experienceYears),
+        consultationFee: Number(formData.consultationFee),
+        qualification: formData.qualification,
+        bio: formData.bio
+      };
+      const response = await doctorService.updateMyProfile(payload);
       if (response.success) {
         toast.success('Profile updated successfully');
         setProfile(response.data);
@@ -74,14 +99,42 @@ export const ProfilePage: React.FC = () => {
               </div>
               
               <div className="space-y-4">
-                <Input label="Full Name" value={`Dr. ${profile.user.fullName}`} disabled />
-                <Input label="Email Address" value={profile.user.email} disabled />
-                <Input label="Specialization" value={profile.specialization} disabled />
+                <Input 
+                  label="Full Name" 
+                  value={formData.fullName} 
+                  onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                />
+                <Input 
+                  label="Email Address" 
+                  type="email"
+                  value={formData.email} 
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                />
+                <Input 
+                  label="Specialization" 
+                  value={formData.specialization} 
+                  onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
+                />
                 <div className="grid grid-cols-2 gap-4">
-                  <Input label="Experience" value={`${profile.experienceYears} Years`} disabled />
-                  <Input label="Consultation Fee" value={`₹${profile.consultationFee}`} disabled />
+                  <Input 
+                    type="number"
+                    label="Experience (Years)" 
+                    value={formData.experienceYears.toString()} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, experienceYears: Number(e.target.value) }))}
+                  />
+                  <Input 
+                    type="number"
+                    label="Consultation Fee" 
+                    leftIcon={<span className="text-sm font-medium">Rs.</span>}
+                    value={formData.consultationFee.toString()} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, consultationFee: Number(e.target.value) }))}
+                  />
                 </div>
-                <Input label="Qualifications" value={profile.qualification} disabled />
+                <Input 
+                  label="Qualifications" 
+                  value={formData.qualification} 
+                  onChange={(e) => setFormData(prev => ({ ...prev, qualification: e.target.value }))}
+                />
               </div>
             </CardContent>
           </Card>
@@ -97,8 +150,8 @@ export const ProfilePage: React.FC = () => {
               </p>
               
               <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
+                value={formData.bio}
+                onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
                 rows={8}
                 className="w-full rounded-lg border border-secondary-200 bg-white px-4 py-3 text-sm transition-colors resize-y focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 mb-4"
                 placeholder="Write a brief professional biography..."
@@ -108,7 +161,6 @@ export const ProfilePage: React.FC = () => {
                 <Button 
                   onClick={handleSave} 
                   isLoading={isSaving}
-                  disabled={bio === profile.bio}
                 >
                   Save Changes
                 </Button>

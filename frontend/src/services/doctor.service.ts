@@ -38,7 +38,7 @@ export const doctorService = {
     return response.data;
   },
 
-  updateMyProfile: async (data: Partial<DoctorProfile>): Promise<{ success: boolean; data: DoctorProfile }> => {
+  updateMyProfile: async (data: Partial<DoctorProfile> & { fullName?: string; email?: string; phone?: string }): Promise<{ success: boolean; data: DoctorProfile }> => {
     const response = await api.put('/doctors/profile', data);
     return response.data;
   }

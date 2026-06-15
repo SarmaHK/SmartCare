@@ -17,6 +17,7 @@ export const createDoctorSchema = z.object({
 export const updateDoctorSchema = z.object({
   body: z.object({
     fullName: z.string().min(2).optional(),
+    email: z.string().email().optional(),
     phone: z.string().min(10).optional(),
     specialization: z.string().min(2).optional(),
     qualification: z.string().optional(),

@@ -23,6 +23,24 @@ export const getDoctorById = async (req: Request, res: Response, next: NextFunct
   }
 };
 
+export const getMyProfile = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const doctor = await doctorService.getDoctorById(Number(req.user!.id));
+    res.status(200).json({ success: true, message: 'Profile fetched successfully', data: doctor });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateMyProfile = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const doctor = await doctorService.updateDoctor(Number(req.user!.id), req.body);
+    res.status(200).json({ success: true, message: 'Profile updated successfully', data: doctor });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createDoctor = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const doctor = await doctorService.createDoctor(req.body);
@@ -32,8 +50,11 @@ export const createDoctor = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-export const updateDoctor = async (req: Request, res: Response, next: NextFunction) => {
+export const updateDoctor = async (req: any, res: Response, next: NextFunction) => {
   try {
+    if (req.user!.role === 'ADMIN' && req.body.email) {
+      delete req.body.email; // Admins cannot update doctor email
+    }
     const doctor = await doctorService.updateDoctor(Number(req.params.id), req.body);
     res.status(200).json({ success: true, message: 'Doctor updated successfully', data: doctor });
   } catch (error) {

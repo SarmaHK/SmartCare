@@ -24,6 +24,16 @@ export const UserDetailsPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Edit State for Doctor Profile
+  const [isEditingDoctor, setIsEditingDoctor] = useState(false);
+  const [doctorFormData, setDoctorFormData] = useState({
+    specialization: '',
+    experienceYears: 0,
+    consultationFee: 0,
+    qualification: '',
+    bio: ''
+  });
+
   useEffect(() => {
     if (id) fetchUserDetails(id);
   }, [id]);
@@ -33,12 +43,44 @@ export const UserDetailsPage: React.FC = () => {
       const response = await adminService.getUserById(userId);
       if (response.success) {
         setUser(response.data);
+        if (response.data.doctorProfile) {
+          setDoctorFormData({
+            specialization: response.data.doctorProfile.specialization || '',
+            experienceYears: response.data.doctorProfile.experienceYears || 0,
+            consultationFee: Number(response.data.doctorProfile.consultationFee) || 0,
+            qualification: response.data.doctorProfile.qualification || '',
+            bio: response.data.doctorProfile.bio || ''
+          });
+        }
       }
     } catch (error) {
       toast.error('Failed to load user details');
       navigate('/admin/users');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSaveDoctorProfile = async () => {
+    if (!user) return;
+    setIsProcessing(true);
+    try {
+      const response = await adminService.updateDoctor(user.id, {
+        specialization: doctorFormData.specialization,
+        experienceYears: Number(doctorFormData.experienceYears),
+        consultationFee: Number(doctorFormData.consultationFee),
+        qualification: doctorFormData.qualification,
+        bio: doctorFormData.bio
+      });
+      if (response.success) {
+        toast.success('Doctor profile updated successfully');
+        setIsEditingDoctor(false);
+        fetchUserDetails(id!);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update doctor profile');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -174,37 +216,77 @@ export const UserDetailsPage: React.FC = () => {
 
           {user.role === 'DOCTOR' && user.doctorProfile && (
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Stethoscope className="w-5 h-5 text-primary-600" />
                   Doctor Profile Data
                 </CardTitle>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setIsEditingDoctor(!isEditingDoctor)}
+                  disabled={isProcessing}
+                >
+                  {isEditingDoctor ? 'Cancel' : 'Edit Profile'}
+                </Button>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <p className="text-secondary-500 text-sm mb-1">Specialization</p>
-                    <p className="font-semibold text-secondary-900">{user.doctorProfile.specialization}</p>
+                {isEditingDoctor ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1">Specialization</label>
+                        <input type="text" className="w-full rounded-lg border border-secondary-200 px-3 py-2" value={doctorFormData.specialization} onChange={(e) => setDoctorFormData({...doctorFormData, specialization: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1">Experience (Years)</label>
+                        <input type="number" className="w-full rounded-lg border border-secondary-200 px-3 py-2" value={doctorFormData.experienceYears} onChange={(e) => setDoctorFormData({...doctorFormData, experienceYears: Number(e.target.value)})} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1 whitespace-nowrap">Consultation Fee (Rs.)</label>
+                        <input type="number" className="w-full rounded-lg border border-secondary-200 px-3 py-2" value={doctorFormData.consultationFee} onChange={(e) => setDoctorFormData({...doctorFormData, consultationFee: Number(e.target.value)})} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-1">Qualifications</label>
+                        <input type="text" className="w-full rounded-lg border border-secondary-200 px-3 py-2" value={doctorFormData.qualification} onChange={(e) => setDoctorFormData({...doctorFormData, qualification: e.target.value})} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-secondary-700 mb-1">Professional Bio</label>
+                      <textarea rows={4} className="w-full rounded-lg border border-secondary-200 px-3 py-2" value={doctorFormData.bio} onChange={(e) => setDoctorFormData({...doctorFormData, bio: e.target.value})} />
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={handleSaveDoctorProfile} isLoading={isProcessing}>Save Changes</Button>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-secondary-500 text-sm mb-1">Experience</p>
-                    <p className="font-semibold text-secondary-900">{user.doctorProfile.experienceYears} Years</p>
-                  </div>
-                  <div>
-                    <p className="text-secondary-500 text-sm mb-1">Consultation Fee</p>
-                    <p className="font-semibold text-secondary-900">₹{user.doctorProfile.consultationFee}</p>
-                  </div>
-                  <div>
-                    <p className="text-secondary-500 text-sm mb-1">Qualifications</p>
-                    <p className="font-semibold text-secondary-900">{user.doctorProfile.qualification}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-secondary-500 text-sm mb-2">Professional Bio</p>
-                  <div className="p-4 bg-secondary-50 rounded-lg text-sm text-secondary-700 whitespace-pre-wrap">
-                    {user.doctorProfile.bio || 'No bio provided.'}
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-6 mb-6">
+                      <div>
+                        <p className="text-secondary-500 text-sm mb-1">Specialization</p>
+                        <p className="font-semibold text-secondary-900">{user.doctorProfile.specialization}</p>
+                      </div>
+                      <div>
+                        <p className="text-secondary-500 text-sm mb-1">Experience</p>
+                        <p className="font-semibold text-secondary-900">{user.doctorProfile.experienceYears} Years</p>
+                      </div>
+                      <div>
+                        <p className="text-secondary-500 text-sm mb-1">Consultation Fee</p>
+                        <p className="font-semibold text-secondary-900">Rs.{user.doctorProfile.consultationFee}</p>
+                      </div>
+                      <div>
+                        <p className="text-secondary-500 text-sm mb-1">Qualifications</p>
+                        <p className="font-semibold text-secondary-900">{user.doctorProfile.qualification}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-secondary-500 text-sm mb-2">Professional Bio</p>
+                      <div className="p-4 bg-secondary-50 rounded-lg text-sm text-secondary-700 whitespace-pre-wrap">
+                        {user.doctorProfile.bio || 'No bio provided.'}
+                      </div>
+                    </div>
+                  </>
+                )}
                 <div className="mt-6 pt-6 border-t border-secondary-200">
                   <Button onClick={() => navigate(`/admin/doctors/${user.doctorProfile!.id}`)}>
                     View Full Doctor Performance
