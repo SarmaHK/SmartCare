@@ -18,7 +18,11 @@ const allowedOrigins = [
 ];
 
 if (env.FRONTEND_URL) {
-  allowedOrigins.push(env.FRONTEND_URL);
+  // Remove trailing slash if user accidentally added one
+  const cleanUrl = env.FRONTEND_URL.endsWith('/') 
+    ? env.FRONTEND_URL.slice(0, -1) 
+    : env.FRONTEND_URL;
+  allowedOrigins.push(cleanUrl);
 }
 
 app.use(cors({
@@ -26,8 +30,12 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    // Allow if it's in the allowed list OR if it's any Vercel deployment URL
+    const isAllowedOrigin = allowedOrigins.includes(origin);
+    const isVercelPreview = origin.endsWith('.vercel.app');
+
+    if (!isAllowedOrigin && !isVercelPreview) {
+      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
       return callback(new Error(msg), false);
     }
     return callback(null, true);
